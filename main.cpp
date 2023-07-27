@@ -14,7 +14,7 @@ int currentLine;
 FILE *srcFile;
 int main(int arc, char *argv[]) {
     if (!argv[1]) {
-        printf("Include source file as arg0\n");
+        printf("Include source file as arg1\n");
         exit(1);
     }
 
@@ -24,19 +24,11 @@ int main(int arc, char *argv[]) {
         exit(1);
     }
 
-
-    while (1) {
-        currentChar = nextChar();
-        printf("%c", currentChar);
-        if (currentChar == EOF)
-        {   
-            printf("hit EOF");
-            fclose(srcFile);
-            exit(0);
-        }
-    }
 }
 
+void init() {
+    currentLine = 1;
+}
 void run() {
 
 }
