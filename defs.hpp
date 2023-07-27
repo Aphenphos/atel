@@ -1,6 +1,5 @@
 #include <vector>
 
-using namespace std;
 
 enum TokenType {
     LEFT_PAREN, RIGHT_PAREN, LEFT_CURL, RIGHT_CURL,
@@ -21,28 +20,25 @@ enum TokenType {
     TRUE, FALSE,
     VAR, CONST,
 
-    EOF
 
 };
 
-class Token {
-    public:
+struct Token {
     TokenType tokenType;
     int intLiteral;
     char* string;
-
-    Token(TokenType tType, int iLit, char* s) {
-        tokenType = tType;
-        intLiteral = iLit;
-        string = s;
-    }
 };
 
 class Scan {
     private:
     vector<Token> tokens;
+    void addToken(TokenType tType, int iLiteral = 0, char* s = '\0'); 
+    bool skip(char c);
+    bool match(char c);
+    void handleString(void);
     
     public:
-
+    vector<Token> scanToken(void);
     void nextChar(void);
+
 };

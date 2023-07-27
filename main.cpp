@@ -3,13 +3,14 @@
 #include <stdio.h>
 
 #include "atel.hpp"
+#include "defs.hpp"
 #include "globals.hpp"
 
 using namespace std;
 char currentChar;
 char prevChar;
 int currentLine;
-
+Token currentToken;
 
 FILE *srcFile;
 int main(int arc, char *argv[]) {
@@ -30,5 +31,5 @@ void init() {
     currentLine = 1;
 }
 void run() {
-
+    Scan scanner();
 }
