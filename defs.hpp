@@ -26,6 +26,14 @@ struct Token {
     TokenType tokenType;
     int intLiteral;
     char* string;
+
+    void print(void) {
+        cout << tokenType << endl;
+        if (string != nullptr) {
+            cout << string << endl;
+        }
+        
+    }
 };
 
 class Scan {

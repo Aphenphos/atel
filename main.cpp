@@ -32,6 +32,7 @@ int main(int arc, char *argv[]) {
 
     init();
     run();
+    exit(0);
 }
 
 void init() {
@@ -40,8 +41,9 @@ void init() {
 void run() {
     Scan scanner;
     scanner.nextChar();
-    vector<Token> tokenList = scanner.scanToken();
-    for (int i = 0; i < tokenList.size(); i++) {
-        cout << tokenList[i].tokenType << endl;
+    vector<Token> tl = scanner.scanToken();
+    cout << "Size of TokenList:" << tl.size() << endl;
+    for (int i = 0; i < tl.size(); i++) {
+        tl[i].print();
     }
 }

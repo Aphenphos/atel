@@ -1,5 +1,6 @@
 #include <vector>
 #include <iostream>
+#include <cstring>
 
 #include "atel.hpp"
 #include "defs.hpp"
@@ -19,7 +20,7 @@ bool Scan::skip(char c) {
             currentLine++;
             return true;
     }
-        return false;
+    return false;
 }
 
 void Scan::addToken(TokenType tType, int iLiteral, char* s) {
@@ -28,24 +29,21 @@ void Scan::addToken(TokenType tType, int iLiteral, char* s) {
     currentToken.string = s;
 
     tokens.push_back(currentToken);
-    nextChar();
 }
 
     void Scan::nextChar(void) {
         char c;
         if (prevChar) {
             currentChar = prevChar;
-            prevChar = 0;
+            prevChar = '\0';
             return; 
         }
         c = fgetc(srcFile);
-        if (!skip(c)) {
+        if (skip(c) == false) {
             currentChar = c;
             return ;    
-        } else {
-            nextChar();
-        }
-
+        } 
+        nextChar();
     };
 
 vector<Token> Scan::scanToken(void) {
@@ -81,11 +79,16 @@ vector<Token> Scan::scanToken(void) {
                 break;
                 }
             case '"': handleString(); break;
+            case EOF: {
+                fclose(srcFile);
+                break;
+            }
             default: {
                 printf("Syntax Error at token %d, line %d", currentChar, currentLine);
                 exit(1);
             }
         }
+        nextChar();
     }
     return tokens;
 };
@@ -93,6 +96,7 @@ vector<Token> Scan::scanToken(void) {
 bool Scan::match(char c) {
     nextChar();
     if (currentChar != c) {
+        prevChar = currentChar;
         return false;
     } else {
         return true;
@@ -110,6 +114,8 @@ void Scan::handleString(void) {
     }
     currentText[i] = currentChar;
     currentText[i + 1] = '\0';
+    char* thisString = (char*)malloc(sizeof(i+1));
+    strcpy(thisString, currentText);
+    addToken(STRING,0,thisString);
     return;
-
 }
