@@ -12,7 +12,7 @@ char currentChar;
 char prevChar;
 int currentLine;
 Token currentToken;
-char currentText[512];
+char currentLiteral[512];
 FILE *srcFile;
 
 void init();

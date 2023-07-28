@@ -4,5 +4,5 @@
 extern char currentChar;
 extern char prevChar;
 extern int currentLine;
-extern char currentText[512];
+extern char currentLiteral[512];
 extern Token currentToken;

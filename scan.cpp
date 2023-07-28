@@ -84,6 +84,10 @@ vector<Token> Scan::scanToken(void) {
                 break;
             }
             default: {
+                if (isdigit(currentChar)) {
+                    handleIntlit();
+                    break;
+                }
                 printf("Syntax Error at token %d, line %d", currentChar, currentLine);
                 exit(1);
             }
@@ -105,17 +109,34 @@ bool Scan::match(char c) {
 
 void Scan::handleString(void) {
     int i = 1;
-    currentText[0] = currentChar;
+    currentLiteral[0] = currentChar;
     nextChar();
     while (currentChar != '"') {
-        currentText[i] = currentChar;
+        currentLiteral[i] = currentChar;
         i++;
         nextChar();
     }
-    currentText[i] = currentChar;
-    currentText[i + 1] = '\0';
+    currentLiteral[i] = currentChar;
+    currentLiteral[i + 1] = '\0';
     char* thisString = (char*)malloc(sizeof(i+1));
-    strcpy(thisString, currentText);
+    strcpy(thisString, currentLiteral);
     addToken(STRING,0,thisString);
+    return;
+}
+
+void Scan::handleIntlit(void) {
+    int i = 1;
+    currentLiteral[0] = currentChar;
+    nextChar();
+    while (isdigit(currentChar) || currentChar == '.') {
+        currentLiteral[i] = currentChar;
+        i++;
+        nextChar();
+    }
+    currentLiteral[i + 1] = '\0';
+    prevChar = currentChar;
+    int finalValue;
+    sscanf(currentLiteral, "%d", &finalValue);
+    addToken(INTLIT, finalValue);
     return;
 }

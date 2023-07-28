@@ -32,6 +32,9 @@ struct Token {
         if (string != nullptr) {
             cout << string << endl;
         }
+        if (intLiteral) {
+            cout << intLiteral << endl;
+        }
         
     }
 };
@@ -43,6 +46,7 @@ class Scan {
     bool skip(char c);
     bool match(char c);
     void handleString(void);
+    void handleIntlit(void);
     
     public:
     vector<Token> scanToken(void);
