@@ -87,6 +87,8 @@ vector<Token> Scan::scanToken(void) {
                 if (isdigit(currentChar)) {
                     handleIntlit();
                     break;
+                } else if (isalpha(currentChar)) {
+
                 }
                 printf("Syntax Error at token %d, line %d", currentChar, currentLine);
                 exit(1);
@@ -139,4 +141,8 @@ void Scan::handleIntlit(void) {
     sscanf(currentLiteral, "%d", &finalValue);
     addToken(INTLIT, finalValue);
     return;
+}
+
+void Scan::handleIdentifier(void) {
+    std::string charsToString(currentLiteral);
 }

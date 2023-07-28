@@ -1,5 +1,5 @@
 #include <vector>
-
+#include <map>
 
 enum TokenType {
     LEFT_PAREN, RIGHT_PAREN, LEFT_CURL, RIGHT_CURL,
@@ -19,6 +19,22 @@ enum TokenType {
     FOR, IF, OR, WHILE, RETURN,
     VAR, CONST,
 
+
+};
+
+
+
+std::map<std::string, int>  reservedWords = 
+{
+    {"true", TRUE},
+    {"false", FALSE},
+    {"while", WHILE},
+    {"if", IF},
+    //TO BE REPLACED WITH STRICT TYPES!
+    {"var", VAR},
+    {"return", RETURN},
+    {"const", CONST},
+    {"class", CLASS}
 
 };
 
@@ -47,7 +63,8 @@ class Scan {
     bool match(char c);
     void handleString(void);
     void handleIntlit(void);
-    
+    void handleIdentifier(void);
+
     public:
     vector<Token> scanToken(void);
     void nextChar(void);
