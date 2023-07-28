@@ -1,2 +1,2 @@
 atel:
-	g++ main.cpp scan.cpp
+	g++ -g main.cpp scan.cpp 

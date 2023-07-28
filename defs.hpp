@@ -17,7 +17,6 @@ enum TokenType {
 
     AND, ELSE, TRUE, FALSE,
     FOR, IF, OR, WHILE, RETURN,
-    TRUE, FALSE,
     VAR, CONST,
 
 
@@ -32,7 +31,7 @@ struct Token {
 class Scan {
     private:
     vector<Token> tokens;
-    void addToken(TokenType tType, int iLiteral = 0, char* s = '\0'); 
+    void addToken(TokenType tType, int iLiteral = 0, char* s = nullptr); 
     bool skip(char c);
     bool match(char c);
     void handleString(void);

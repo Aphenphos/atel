@@ -1,6 +1,7 @@
 #include <string>
 #include <fstream>
 #include <stdio.h>
+#include <iostream>
 
 #include "atel.hpp"
 #include "defs.hpp"
@@ -11,8 +12,12 @@ char currentChar;
 char prevChar;
 int currentLine;
 Token currentToken;
-
+char currentText[512];
 FILE *srcFile;
+
+void init();
+void run();
+
 int main(int arc, char *argv[]) {
     if (!argv[1]) {
         printf("Include source file as arg1\n");
@@ -25,11 +30,18 @@ int main(int arc, char *argv[]) {
         exit(1);
     }
 
+    init();
+    run();
 }
 
 void init() {
     currentLine = 1;
 }
 void run() {
-    Scan scanner();
+    Scan scanner;
+    scanner.nextChar();
+    vector<Token> tokenList = scanner.scanToken();
+    for (int i = 0; i < tokenList.size(); i++) {
+        cout << tokenList[i].tokenType << endl;
+    }
 }

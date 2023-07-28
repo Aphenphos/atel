@@ -22,12 +22,13 @@ bool Scan::skip(char c) {
         return false;
 }
 
-void Scan::addToken(TokenType tType, int iLiteral = 0, char* s = '\0') {
+void Scan::addToken(TokenType tType, int iLiteral, char* s) {
     currentToken.tokenType = tType;
     currentToken.intLiteral = iLiteral;
     currentToken.string = s;
 
     tokens.push_back(currentToken);
+    nextChar();
 }
 
     void Scan::nextChar(void) {
@@ -38,9 +39,11 @@ void Scan::addToken(TokenType tType, int iLiteral = 0, char* s = '\0') {
             return; 
         }
         c = fgetc(srcFile);
-        if (c != EOF && !skip(c)) {
+        if (!skip(c)) {
             currentChar = c;
             return ;    
+        } else {
+            nextChar();
         }
 
     };
@@ -78,14 +81,13 @@ vector<Token> Scan::scanToken(void) {
                 break;
                 }
             case '"': handleString(); break;
-
             default: {
                 printf("Syntax Error at token %d, line %d", currentChar, currentLine);
                 exit(1);
             }
         }
-
     }
+    return tokens;
 };
 
 bool Scan::match(char c) {
@@ -98,7 +100,16 @@ bool Scan::match(char c) {
 }
 
 void Scan::handleString(void) {
+    int i = 1;
+    currentText[0] = currentChar;
+    nextChar();
     while (currentChar != '"') {
+        currentText[i] = currentChar;
+        i++;
         nextChar();
     }
+    currentText[i] = currentChar;
+    currentText[i + 1] = '\0';
+    return;
+
 }
