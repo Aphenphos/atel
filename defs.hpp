@@ -28,7 +28,7 @@ enum TokenType {
 
 
 
-extern map<string, int> reservedWords;
+extern map<string, TokenType> reservedWords;
 
 struct Token {
     TokenType tokenType;
@@ -51,7 +51,7 @@ class Scan {
     private:
     vector<Token> tokens;
     void addToken(TokenType tType, int iLiteral = 0, char* s = nullptr); 
-    bool skip(char c);
+    bool skipChar(char c);
     bool match(char c);
     void handleString(void);
     void handleIntlit(void);

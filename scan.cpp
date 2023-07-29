@@ -1,6 +1,7 @@
 #include <vector>
 #include <iostream>
 #include <cstring>
+#include <map>
 
 #include "atel.hpp"
 #include "defs.hpp"
@@ -10,7 +11,7 @@ using namespace std;
 
 vector<Token> tokens;
 
-bool Scan::skip(char c) {
+bool Scan::skipChar(char c) {
     switch (c) {
         case ' ':
         case '\r':
@@ -45,7 +46,7 @@ void Scan::addToken(TokenType tType, int iLiteral, char* s) {
 
 vector<Token> Scan::scanToken(void) {
     while(currentChar != EOF) {
-        if (skip(currentChar) == true) {
+        if (skipChar(currentChar) == true) {
             nextChar();
         }
         switch (currentChar) {
@@ -148,15 +149,25 @@ void Scan::handleIdentifier(void) {
     int i = 1;
     currentLiteral[0] = currentChar;
     nextChar();
-    while (skip(currentChar) == false && isdigit(currentChar) == false) {
+
+    while(isalpha(currentChar) || currentChar == '_') {
         currentLiteral[i] = currentChar;
         i++;
         nextChar();
     }
-
     currentLiteral[i] = '\0';
-    char* ident = (char*)malloc(sizeof(i+1));
-    strcpy(ident, currentLiteral);
-    addToken(IDENT,0,ident);
-    return;
+
+    string stringCurrentLiteral(currentLiteral);
+
+    if (reservedWords.count(currentLiteral) == 1) {
+        addToken(reservedWords.at(stringCurrentLiteral));
+        return;
+    } else {
+        char* ident = (char*)malloc(sizeof(i+1));
+        strcpy(ident, currentLiteral);
+        addToken(IDENT,0,ident);
+        return;
+
+    }
+
 }

@@ -15,7 +15,7 @@ int currentLine;
 Token currentToken;
 char currentLiteral[512];
 FILE *srcFile;
-map<string, int> reservedWords = 
+map<string, TokenType> reservedWords = 
 {
     {"true", TRUE},
     {"false", FALSE},
