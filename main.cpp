@@ -2,6 +2,7 @@
 #include <fstream>
 #include <stdio.h>
 #include <iostream>
+#include <map>
 
 #include "atel.hpp"
 #include "defs.hpp"
@@ -14,6 +15,19 @@ int currentLine;
 Token currentToken;
 char currentLiteral[512];
 FILE *srcFile;
+map<string, int> reservedWords = 
+{
+    {"true", TRUE},
+    {"false", FALSE},
+    {"while", WHILE},
+    {"if", IF},
+    //TO BE REPLACED WITH STRICT TYPES! u8 u16 s8 s16 etc
+    {"var", VAR},
+    {"return", RETURN},
+    {"const", CONST},
+    {"class", CLASS}
+
+};
 
 void init();
 void run();

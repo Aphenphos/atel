@@ -39,15 +39,15 @@ void Scan::addToken(TokenType tType, int iLiteral, char* s) {
             return; 
         }
         c = fgetc(srcFile);
-        if (skip(c) == false) {
-            currentChar = c;
-            return ;    
-        } 
-        nextChar();
+        currentChar = c;   
+        return;
     };
 
 vector<Token> Scan::scanToken(void) {
     while(currentChar != EOF) {
+        if (skip(currentChar) == true) {
+            nextChar();
+        }
         switch (currentChar) {
             case '(': addToken(LEFT_PAREN); break;
             case ')': addToken(RIGHT_PAREN); break;
@@ -88,7 +88,8 @@ vector<Token> Scan::scanToken(void) {
                     handleIntlit();
                     break;
                 } else if (isalpha(currentChar)) {
-
+                    handleIdentifier();
+                    break;
                 }
                 printf("Syntax Error at token %d, line %d", currentChar, currentLine);
                 exit(1);
@@ -144,5 +145,18 @@ void Scan::handleIntlit(void) {
 }
 
 void Scan::handleIdentifier(void) {
-    std::string charsToString(currentLiteral);
+    int i = 1;
+    currentLiteral[0] = currentChar;
+    nextChar();
+    while (skip(currentChar) == false && isdigit(currentChar) == false) {
+        currentLiteral[i] = currentChar;
+        i++;
+        nextChar();
+    }
+
+    currentLiteral[i] = '\0';
+    char* ident = (char*)malloc(sizeof(i+1));
+    strcpy(ident, currentLiteral);
+    addToken(IDENT,0,ident);
+    return;
 }

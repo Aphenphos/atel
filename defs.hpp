@@ -1,5 +1,9 @@
+#pragma once
+
 #include <vector>
 #include <map>
+
+using namespace std;
 
 enum TokenType {
     LEFT_PAREN, RIGHT_PAREN, LEFT_CURL, RIGHT_CURL,
@@ -24,19 +28,7 @@ enum TokenType {
 
 
 
-std::map<std::string, int>  reservedWords = 
-{
-    {"true", TRUE},
-    {"false", FALSE},
-    {"while", WHILE},
-    {"if", IF},
-    //TO BE REPLACED WITH STRICT TYPES!
-    {"var", VAR},
-    {"return", RETURN},
-    {"const", CONST},
-    {"class", CLASS}
-
-};
+extern map<string, int> reservedWords;
 
 struct Token {
     TokenType tokenType;
