@@ -5,6 +5,7 @@
 #include <map>
 
 #include "atel.hpp"
+#include "handleErr.hpp"
 #include "defs.hpp"
 #include "globals.hpp"
 
@@ -32,20 +33,23 @@ map<string, TokenType> reservedWords =
 void init();
 void run();
 
+
+
 int main(int arc, char *argv[]) {
     if (!argv[1]) {
-        printf("Include source file as arg1\n");
-        exit(1);
+        char err[] = "please provide sourcefile";
+        handleFatalError(err);
     }
 
     srcFile = fopen(argv[1], "r");
     if (srcFile == NULL) {
-        printf("Could not open file");
-        exit(1);
+        char err[] = "Could not open sourcefile";
+        handleFatalError(err);
     }
 
     init();
     run();
+    printErrors();
     exit(0);
 }
 

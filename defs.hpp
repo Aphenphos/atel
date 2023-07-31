@@ -23,7 +23,7 @@ enum TokenType {
     FOR, IF, OR, WHILE, RETURN,
     VAR, CONST,
 
-
+    END
 };
 
 
@@ -61,4 +61,53 @@ class Scan {
     vector<Token> scanToken(void);
     void nextChar(void);
 
+};
+
+class Parse {
+    vector<Token> tokens;
+    int current = 0;
+
+    Parse(vector<Token> tokens);
+
+};
+
+class Expression {
+    public:
+    Expression equality(); 
+    Expression comparison();
+    Token prevToken();
+    bool match(TokenType types...);
+    bool check(TokenType t);
+    bool next(void);
+    Expression additive();
+    Expression multiplicative();
+    Expression unary();
+};
+
+class Binary: public Expression {
+    
+    Expression left;
+    Token op;
+    Expression right;
+    public:
+    Binary(Expression left, Token op, Expression right);
+};
+
+class Grouping: public Expression {
+    Expression expression;
+    Grouping(Expression expression);
+};
+
+class Literal: public Expression {
+    int intLiteral;
+    char* string;
+
+    Literal(char* string = nullptr, int intLiteral = 0);
+};
+
+class Unary: public Expression {
+    Token op;
+    Expression right;
+
+    Unary(Token op, Expression right);
 };

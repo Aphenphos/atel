@@ -4,6 +4,3 @@
 
 using namespace std;
 
-extern FILE *srcFile;
-
-char nextChar(void);

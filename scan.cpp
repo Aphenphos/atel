@@ -4,6 +4,7 @@
 #include <map>
 
 #include "atel.hpp"
+#include "handleErr.hpp"
 #include "defs.hpp"
 #include "globals.hpp"
 
@@ -63,6 +64,21 @@ vector<Token> Scan::scanToken(void) {
             case '*': addToken(STAR); break;
             case '/': addToken(SLASH); break;
             case ';': addToken(SEMICOLON); break;
+            case '|': {
+                if (match('|')) {
+                    addToken(OR); break;
+                }  else {
+                    handleSyntaxError();
+                    break;
+                }
+            }
+            case '&': {
+                if (match('&')) {
+                    addToken(AND); break;
+                }
+                handleSyntaxError();
+                break;
+            }
             case '!': {
                     addToken(match('=') ? BANG_EQ : BANG);
                 }
@@ -81,6 +97,7 @@ vector<Token> Scan::scanToken(void) {
                 }
             case '"': handleString(); break;
             case EOF: {
+                addToken(END);
                 fclose(srcFile);
                 break;
             }
