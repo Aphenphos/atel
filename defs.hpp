@@ -64,9 +64,28 @@ class Scan {
 };
 
 class Parse {
-    vector<Token> tokens;
-    int current = 0;
 
-    Parse(vector<Token> tokens);
 
+    public:
+    static vector<Token> tokens;
+    static int current;
+    static void initParser(vector<Token> tokens);
+    static void nextToken(void);
+    static void parse(void);
+    static int interpretAST(Expression* tree);
+};
+
+class Expression {
+
+    public:
+    Expression* left;
+    Expression* right;
+    TokenType op;
+    int intValue;
+
+    Expression(Expression* left, Expression* right, TokenType op, int intValue);
+    static Expression* castPrimary(void);
+    static Expression* binaryExpression(void);
+    static Expression* castLeaf(TokenType op, int intValue);
+    static Expression* castUnary(TokenType op, Expression* left, int intValue);
 };

@@ -29,6 +29,10 @@ map<string, TokenType> reservedWords =
     {"class", CLASS}
 
 };
+vector<Token> Parse::tokens;
+int Parse::current;
+
+
 
 void init();
 void run();
@@ -64,4 +68,8 @@ void run() {
     for (int i = 0; i < tl.size(); i++) {
         tl[i].print();
     }
+    Parse::initParser(tl);
+    Expression* node;
+    node = Expression::binaryExpression();
+    printf("%d\n", node);
 }
