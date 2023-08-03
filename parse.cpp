@@ -8,19 +8,28 @@
 #include "defs.hpp"
 #include "globals.hpp"
 
+map<TokenType, int> Expression::opPrecValues = 
+{   
+    {END , 0}, 
+    {INTLIT, 0}, 
+    {PLUS, 10}, 
+    {MINUS, 10}, 
+    {STAR, 20}, 
+    {SLASH, 20}
+};
 
-
-Expression::Expression(Expression* left, Expression* right, TokenType op, int intValue) {
-    left = left;
-    right = right;
-    op = op;
-    intValue = intValue;
+Expression::Expression(Expression* pleft, Expression* pright, TokenType pop, int pintValue) {
+    left = pleft;
+    right = pright;
+    op = pop;
+    intValue = pintValue;
 }
 
 
-void Parse::initParser(vector<Token> tokens) {
-    Parse::tokens = tokens;
+void Parse::initParser(vector<Token> ts) {
+    Parse::tokens = ts;
     Parse::current = 0;
+    currentToken = tokens[current];
 }
 
 void Parse::nextToken(void) {
@@ -40,9 +49,19 @@ int Parse::interpretAST(Expression* n) {
     switch(n->op) {
         case PLUS:
             return leftVal + rightVal;
+        case MINUS:
+            return leftVal - rightVal;
+        case STAR:
+            return leftVal * rightVal;
+        case SLASH:
+            return leftVal / rightVal;
         case INTLIT:
             return n->intValue;
+        default:
+            fprintf(stderr, "Parsing error %d\0\n", n->op);
+            exit(1);
     }
+
 }
 
 Expression* Expression::castLeaf(TokenType op, int intValue) {
@@ -58,30 +77,49 @@ Expression* Expression::castPrimary(void) {
     switch(currentToken.tokenType) {
         case INTLIT:
             node = castLeaf(INTLIT, currentToken.intLiteral);
+            Parse::nextToken();
             return node;
         default:
-            handleSyntaxError();
+            fprintf(stderr, "Parsing error %d", node->op);
             exit(1);
     }
 }
 
-Expression* Expression::binaryExpression(void) {
-    Expression* node, *left, *right;
+Expression* Expression::binaryExpression(int prevTokenPrec) {
+    Expression* left, *right;
     TokenType type;
     left = castPrimary();
+    type = currentToken.tokenType;
 
-    if (currentToken.tokenType == END) {
+    if (type == END) {
         return(left);
     }
 
-    type = currentToken.tokenType;
+    while(getOpPrec(type) > prevTokenPrec) {
+        Parse::nextToken();
+        right = binaryExpression(opPrecValues.at(type));
+        left = new Expression(left, right, type, 0);
 
-    Parse::nextToken();
+        type = currentToken.tokenType;
+        if (type == END) {
+            return (left);
+        }
 
-    right = binaryExpression();
-    
-    node = new Expression(left,right,type,0);
-
-    return node;
+    }
+    return left;
 }
 
+
+Expression* Expression::init(void) {
+    return binaryExpression(0);
+}
+
+int Expression::getOpPrec(TokenType type) {
+    int prec = opPrecValues.at(type);
+    if (prec == 0) {
+        fprintf(stderr, "syntax error on line:%d token: %d", currentLine, type);
+        exit(1);
+    }
+
+    return prec;
+}

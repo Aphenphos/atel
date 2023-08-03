@@ -36,12 +36,12 @@ struct Token {
     char* string;
 
     void print(void) {
-        cout << tokenType << endl;
+        printf("TokenType: %d \n", tokenType);
         if (string != nullptr) {
-            cout << string << endl;
+            printf("stringLit: \n", string);
         }
         if (intLiteral) {
-            cout << intLiteral << endl;
+            printf("IntLit: %i \n", intLiteral);
         }
         
     }
@@ -49,33 +49,27 @@ struct Token {
 
 class Scan {
     private:
-    vector<Token> tokens;
     void addToken(TokenType tType, int iLiteral = 0, char* s = nullptr); 
-    bool skipChar(char c);
+    bool skipChar(void);
     bool match(char c);
     void handleString(void);
     void handleIntlit(void);
     void handleIdentifier(void);
 
     public:
+    vector<Token> tokens;
     vector<Token> scanToken(void);
     void nextChar(void);
 
 };
 
-class Parse {
-
-
-    public:
-    static vector<Token> tokens;
-    static int current;
-    static void initParser(vector<Token> tokens);
-    static void nextToken(void);
-    static void parse(void);
-    static int interpretAST(Expression* tree);
+struct opPrecObj {
+    TokenType type;
+    int prec;
 };
 
 class Expression {
+    static map<TokenType, int> opPrecValues;
 
     public:
     Expression* left;
@@ -84,8 +78,20 @@ class Expression {
     int intValue;
 
     Expression(Expression* left, Expression* right, TokenType op, int intValue);
+    static Expression* init(void);
     static Expression* castPrimary(void);
-    static Expression* binaryExpression(void);
+    static Expression* binaryExpression(int prevTokenPrec);
     static Expression* castLeaf(TokenType op, int intValue);
     static Expression* castUnary(TokenType op, Expression* left, int intValue);
+    static int getOpPrec(TokenType type);
+};
+
+class Parse {
+    public:
+    static vector<Token> tokens;
+    static int current;
+    static void initParser(vector<Token> tokens);
+    static void nextToken(void);
+    static void parse(void);
+    static int interpretAST(Expression* tree);
 };

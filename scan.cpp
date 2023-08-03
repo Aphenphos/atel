@@ -12,8 +12,8 @@ using namespace std;
 
 vector<Token> tokens;
 
-bool Scan::skipChar(char c) {
-    switch (c) {
+bool Scan::skipChar() {
+    switch (currentChar) {
         case ' ':
         case '\r':
         case '\t':
@@ -33,22 +33,23 @@ void Scan::addToken(TokenType tType, int iLiteral, char* s) {
     tokens.push_back(currentToken);
 }
 
-    void Scan::nextChar(void) {
-        char c;
-        if (prevChar) {
-            currentChar = prevChar;
-            prevChar = '\0';
-            return; 
-        }
-        c = fgetc(srcFile);
-        currentChar = c;   
-        return;
-    };
+void Scan::nextChar(void) {
+    char c;
+    if (prevChar) {
+        currentChar = prevChar;
+        prevChar = '\0';
+        return; 
+    }
+    c = fgetc(srcFile);
+    currentChar = c;   
+    return;
+};
 
 vector<Token> Scan::scanToken(void) {
-    while(currentChar != EOF) {
-        if (skipChar(currentChar) == true) {
+    while(1) {
+        if (skipChar() == true) {
             nextChar();
+            continue;
         }
         switch (currentChar) {
             case '(': addToken(LEFT_PAREN); break;
@@ -68,7 +69,7 @@ vector<Token> Scan::scanToken(void) {
                 if (match('|')) {
                     addToken(OR); break;
                 }  else {
-                    handleSyntaxError();
+                    handleScanningError();
                     break;
                 }
             }
@@ -76,7 +77,7 @@ vector<Token> Scan::scanToken(void) {
                 if (match('&')) {
                     addToken(AND); break;
                 }
-                handleSyntaxError();
+                handleScanningError();
                 break;
             }
             case '!': {
@@ -99,7 +100,7 @@ vector<Token> Scan::scanToken(void) {
             case EOF: {
                 addToken(END);
                 fclose(srcFile);
-                break;
+                return tokens;
             }
             default: {
                 if (isdigit(currentChar)) {
@@ -109,8 +110,7 @@ vector<Token> Scan::scanToken(void) {
                     handleIdentifier();
                     break;
                 }
-                printf("Syntax Error at token %d, line %d", currentChar, currentLine);
-                exit(1);
+                handleScanningError();
             }
         }
         nextChar();
@@ -154,8 +154,8 @@ void Scan::handleIntlit(void) {
         i++;
         nextChar();
     }
-    currentLiteral[i + 1] = '\0';
     prevChar = currentChar;
+    currentLiteral[i] = '\0';
     int finalValue;
     sscanf(currentLiteral, "%d", &finalValue);
     addToken(INTLIT, finalValue);

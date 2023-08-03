@@ -53,13 +53,13 @@ int main(int arc, char *argv[]) {
 
     init();
     run();
-    printErrors();
     exit(0);
 }
 
 void init() {
     currentLine = 1;
 }
+
 void run() {
     Scan scanner;
     scanner.nextChar();
@@ -68,8 +68,13 @@ void run() {
     for (int i = 0; i < tl.size(); i++) {
         tl[i].print();
     }
+    if (errors.size() != 0) {
+        printErrors();
+        exit(1);
+    }
+    cout << "_________Parser____________"<<endl;
     Parse::initParser(tl);
     Expression* node;
-    node = Expression::binaryExpression();
-    printf("%d\n", node);
+    node = Expression::init();
+    printf("%d\n", Parse::interpretAST(node));
 }

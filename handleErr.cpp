@@ -14,11 +14,11 @@ using namespace std;
 
 vector<string> errors;
 
-void handleSyntaxError(void) { 
-    char currentErrChar = prevChar;
+void handleScanningError(void) { 
+    char currentErrChar = currentChar;
     int currentErrLine = currentLine;
 
-    errors.push_back("Line: " + to_string(currentErrLine) + " Char: " + to_string(currentErrChar));
+    errors.push_back("Line: " + to_string(currentErrLine) + " Char: " + "'" + string(1,currentErrChar) + "'");
 }
 
 void handleCustomError(char message[]) {
@@ -29,6 +29,7 @@ void handleFatalError(char message[]) {
     printf(message);
     exit(1);
 }
+
 
 void printErrors(void) {
     if (errors.size()) {
