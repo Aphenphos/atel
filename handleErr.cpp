@@ -30,6 +30,11 @@ void handleFatalError(char message[]) {
     exit(1);
 }
 
+void handleSyntaxError(void) {
+    printf("Syntax error at token:%d", currentToken.tokenType);
+    exit(1);
+}
+
 
 void printErrors(void) {
     if (errors.size()) {
@@ -40,4 +45,9 @@ void printErrors(void) {
         cout << "______________________" << endl;
     }
     return;
+}
+
+void handleUnknownVar(void) {
+    printf("Unknown variable:%s", currentLiteral);
+    exit(1);
 }

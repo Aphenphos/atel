@@ -27,8 +27,8 @@ bool Scan::skipChar() {
 
 void Scan::addToken(TokenType tType, int iLiteral, char* s) {
     currentToken.tokenType = tType;
-    currentToken.intLiteral = iLiteral;
-    currentToken.string = s;
+    currentToken.literal.intLiteral = iLiteral;
+    currentToken.literal.string = s;
 
     tokens.push_back(currentToken);
 }
@@ -172,6 +172,7 @@ void Scan::handleIdentifier(void) {
         i++;
         nextChar();
     }
+    prevChar = currentChar;
     currentLiteral[i] = '\0';
 
     string stringCurrentLiteral(currentLiteral);
@@ -187,4 +188,18 @@ void Scan::handleIdentifier(void) {
 
     }
 
+}
+
+void Scan::printTokens(void) {
+    cout << "Size of TokenList:" << tokens.size() << endl;
+    cout << "Size of TokenList:" << tokens.size() << endl;
+    for (int i = 0; i < tokens.size(); i++) {
+        tokens[i].print();
+    }
+    if (errors.size() != 0) {
+        printErrors();
+        exit(1);
+    }
+
+    return;
 }

@@ -22,16 +22,13 @@ map<string, TokenType> reservedWords =
     {"false", FALSE},
     {"while", WHILE},
     {"if", IF},
-    //TO BE REPLACED WITH STRICT TYPES! u8 u16 s8 s16 etc
-    {"var", VAR},
+    {"int", INT},
     {"return", RETURN},
     {"const", CONST},
-    {"class", CLASS}
+    {"class", CLASS},
+    {"print", PRINT}
 
 };
-vector<Token> Parse::tokens;
-int Parse::current;
-
 
 
 void init();
@@ -63,18 +60,15 @@ void init() {
 void run() {
     Scan scanner;
     scanner.nextChar();
-    vector<Token> tl = scanner.scanToken();
-    cout << "Size of TokenList:" << tl.size() << endl;
-    for (int i = 0; i < tl.size(); i++) {
-        tl[i].print();
-    }
-    if (errors.size() != 0) {
-        printErrors();
-        exit(1);
-    }
-    cout << "_________Parser____________"<<endl;
-    Parse::initParser(tl);
-    Expression* node;
-    node = Expression::init();
-    printf("%d\n", Parse::interpretAST(node));
+    vector<Token> tokenList = scanner.scanToken();
+    scanner.printTokens();
+
+    vector<Token>* tokensPointer = &scanner.tokens;
+    
+    Parse::initParser(tokensPointer);
+
+    Asm::init((char *)"test.nasm");
+    Asm::preamble();
+    Statement::statements();
+    Asm::postamble();
 }

@@ -8,6 +8,9 @@
 #include "defs.hpp"
 #include "globals.hpp"
 
+vector<Token> Parse::tokens;
+int Parse::current;
+
 map<TokenType, int> Expression::opPrecValues = 
 {   
     {END , 0}, 
@@ -22,12 +25,13 @@ Expression::Expression(Expression* pleft, Expression* pright, TokenType pop, int
     left = pleft;
     right = pright;
     op = pop;
-    intValue = pintValue;
+    value.intValue = pintValue;
 }
 
 
-void Parse::initParser(vector<Token> ts) {
-    Parse::tokens = ts;
+void Parse::initParser(vector<Token>* ts) {
+    cout << "_________Parser____________"<<endl;
+    Parse::tokens = *ts;
     Parse::current = 0;
     currentToken = tokens[current];
 }
@@ -37,26 +41,32 @@ void Parse::nextToken(void) {
     currentToken = tokens[current];
 }
 
-int Parse::interpretAST(Expression* n) {
-    int leftVal, rightVal;
+int Parse::interpretAST(Expression* n, int r) {
+    int leftRegister, rightRegister;
     if (n->left) {
-        leftVal = Parse::interpretAST(n->left);
+        leftRegister = Parse::interpretAST(n->left, -1);
     }
     if (n->right) {
-        rightVal = Parse::interpretAST(n->right);
+        rightRegister = Parse::interpretAST(n->right, leftRegister);
     }
 
     switch(n->op) {
         case PLUS:
-            return leftVal + rightVal;
+            return Asm::add(leftRegister, rightRegister);
         case MINUS:
-            return leftVal - rightVal;
+            return Asm::subtract(leftRegister, rightRegister);
         case STAR:
-            return leftVal * rightVal;
+            return Asm::multiply(leftRegister, rightRegister);
         case SLASH:
-            return leftVal / rightVal;
+            return Asm::divide(leftRegister, rightRegister);
         case INTLIT:
-            return n->intValue;
+            return Asm::loadInt(n->value.intValue);
+        case IDENT:
+            return Asm::loadGlobalSymbol(Symbols::symbolTable[n->value.id].name);
+        case LVIDENT:
+            return Asm::storeGlobalSymbol(r, Symbols::symbolTable[n->value.id].name);
+        case ASSIGN:
+            return(rightRegister);
         default:
             fprintf(stderr, "Parsing error %d\0\n", n->op);
             exit(1);
@@ -74,15 +84,24 @@ Expression* Expression::castUnary(TokenType op, Expression* left, int intValue) 
 
 Expression* Expression::castPrimary(void) {
     Expression* node;
+    int id;
     switch(currentToken.tokenType) {
         case INTLIT:
-            node = castLeaf(INTLIT, currentToken.intLiteral);
-            Parse::nextToken();
-            return node;
+            node = castLeaf(INTLIT, currentToken.literal.intLiteral);
+            break;
+        case IDENT:
+            id = Symbols::findGlobalSymbol(currentToken.literal.string);
+            if (id == -1) {
+                handleUnknownVar();
+            }
+            node = castLeaf(IDENT, id);
+            break;
         default:
             fprintf(stderr, "Parsing error %d", node->op);
             exit(1);
     }
+    Parse::nextToken();
+    return node;
 }
 
 Expression* Expression::binaryExpression(int prevTokenPrec) {
@@ -91,7 +110,7 @@ Expression* Expression::binaryExpression(int prevTokenPrec) {
     left = castPrimary();
     type = currentToken.tokenType;
 
-    if (type == END) {
+    if (type == SEMICOLON) {
         return(left);
     }
 
@@ -101,7 +120,7 @@ Expression* Expression::binaryExpression(int prevTokenPrec) {
         left = new Expression(left, right, type, 0);
 
         type = currentToken.tokenType;
-        if (type == END) {
+        if (type == SEMICOLON) {
             return (left);
         }
 
