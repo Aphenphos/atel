@@ -32,8 +32,9 @@ void Statement::varDeclaration(void) {
     matchTokenAndString(INT, (char*)"int");
     matchTokenAndString(IDENT, (char*)"ident");
 
-    Symbols::addGsymbol((char*)currentToken.string);
-    Asm::globalSymbol((char*)currentToken.string);
+    Symbols::addGsymbol((char*)prevToken.literal.string);
+    Asm::globalSymbol((char*)prevToken.literal.string);
+    
     matchTokenAndString(SEMICOLON, (char*)";");
 }
 
@@ -43,7 +44,7 @@ void Statement::assignmentStatement(void) {
 
     matchTokenAndString(IDENT,(char*)"ident");
 
-    if ((id = Symbols::findGlobalSymbol(currentToken.string)) == -1) {
+    if ((id = Symbols::findGlobalSymbol(prevToken.literal.string)) == -1) {
         printf("Symbol not found : ");
         handleSyntaxError();
     }

@@ -14,6 +14,7 @@ char currentChar;
 char prevChar;
 int currentLine;
 Token currentToken;
+Token prevToken;
 char currentLiteral[512];
 FILE *srcFile;
 map<string, TokenType> reservedWords = 
