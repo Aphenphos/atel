@@ -38,7 +38,7 @@ void matchTokenAndString(TokenType type, char* string);
 
 struct Token {
     TokenType tokenType;
-    union {
+    struct {
         int intLiteral;
         char* string;
     } literal;
@@ -50,7 +50,8 @@ struct Token {
             cout << literal.string << endl;
         }
         if (literal.intLiteral) {
-            printf("IntLit: %i \n", literal.intLiteral);
+            printf("intLit: ");
+            cout << literal.intLiteral << endl;
         }
         
     }
@@ -139,11 +140,14 @@ class Symbols {
 class Asm {
     private:
     static FILE *outfile;
+    static int compare(int r1, int r2, char* instruction);
+
 
     public:
     static void init(char* filename);
     static int freeRegisters[4];
     const static char* registerList[4];
+    const static char* bRegisterList[4];
 
     static void freeAllRegisters(void);
     static int allocateRegister(void);
@@ -160,6 +164,13 @@ class Asm {
     static void globalSymbol(char* s);
     static int loadGlobalSymbol(char* s);
     static int storeGlobalSymbol(int r, char* s);
+
+    static int eq(int r1, int r2);
+    static int bangEq(int r1, int r2);
+    static int less(int r1, int r2);
+    static int great(int r1, int r2);
+    static int lessEq(int r1, int r2);
+    static int greatEq(int r1, int r2);
 
     static void printInt(int r);
 };

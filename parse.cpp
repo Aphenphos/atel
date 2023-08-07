@@ -18,7 +18,13 @@ map<TokenType, int> Expression::opPrecValues =
     {PLUS, 10}, 
     {MINUS, 10}, 
     {STAR, 20}, 
-    {SLASH, 20}
+    {SLASH, 20},
+    {EQ_EQ, 30},
+    {BANG_EQ, 30},
+    {LESS, 40},
+    {LESS_EQ, 40},
+    {GREAT, 40},
+    {GREAT_EQ, 40}
 };
 
 Expression::Expression(Expression* pleft, Expression* pright, TokenType pop, int pintValue) {
@@ -65,6 +71,19 @@ int Parse::interpretAST(Expression* n, int r) {
             return Asm::loadGlobalSymbol(Symbols::symbolTable[n->value.id].name);
         case LVIDENT:
             return Asm::storeGlobalSymbol(r, Symbols::symbolTable[n->value.id].name);
+        case EQ_EQ:
+            return Asm::eq(leftRegister, rightRegister);
+        case BANG_EQ:
+            return Asm::bangEq(leftRegister, rightRegister);
+        case LESS:
+            return Asm::less(leftRegister, rightRegister);
+        case LESS_EQ:
+            return Asm::lessEq(leftRegister, rightRegister);
+        case GREAT:
+            return Asm::great(leftRegister, rightRegister);
+        case GREAT_EQ:
+            return Asm::greatEq(leftRegister, rightRegister);
+    
         case ASSIGN:
             return(rightRegister);
         default:

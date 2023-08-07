@@ -8,7 +8,7 @@
 FILE* Asm::outfile;
 int Asm::freeRegisters[4];
 const char* Asm::registerList[4] = { "r8" , "r9" , "r10" , "r11" };
-
+const char* Asm::bRegisterList[4] ={ "r8b", "r9b", "r10b", "r11b" }; 
 void Asm::init(char* filename) {
 
     outfile = fopen(("%s.nasm", filename), "w");
@@ -92,6 +92,7 @@ int Asm::add(int r1, int r2) {
 
 int Asm::subtract(int r1, int r2) {
     printf("Subtracting reg:%i,reg: %i\n", r1, r2);
+    
     fprintf(outfile, "\tsub\ts%s\n", registerList[r1], registerList[r2]);
     freeRegister(r2);
     return r1;
@@ -99,6 +100,7 @@ int Asm::subtract(int r1, int r2) {
 
 int Asm::multiply(int r1, int r2) {
     printf("multiplying reg: %i,reg: %i\n", r1, r2);
+    
     fprintf(outfile, "\timul\t%s, %s\n", registerList[r2], registerList[r1]);
     freeRegister(r1);
     return r2;
@@ -106,6 +108,7 @@ int Asm::multiply(int r1, int r2) {
 
 int Asm::divide(int r1, int r2) {
     printf("Dividing reg:%i, reg:%i\n", r1, r2);
+    
     fprintf(outfile, "\tmov\trax, %s\n", registerList[r1]);
     fprintf(outfile, "\tcqo\n");
     fprintf(outfile, "\tidiv\t%s\n", registerList[r2]);
@@ -117,6 +120,7 @@ int Asm::divide(int r1, int r2) {
 
 void Asm::printInt(int r) {
     printf("INT: Printing reg:%i\n",r);
+    
     fprintf(outfile, "\tmov\trdi, %s\n", registerList[r]);
     fprintf(outfile, "\tcall\tprintint\n");
     freeRegister(r);
@@ -124,19 +128,57 @@ void Asm::printInt(int r) {
 
 int Asm::loadGlobalSymbol(char* s) {
     int r = allocateRegister();
-    printf("Loading symbol: %s in register: %i", s, r);
+    printf("Loading symbol: %s in register: %i\n", s, r);
 
     fprintf(outfile, "\tmov\t%s, [%s]\n", registerList[r], s);
     return r;
 }
 
 int Asm::storeGlobalSymbol(int r, char* s) {
-    printf("storing global symbol: %s in reg:%i", s, r);
+    printf("storing global symbol: %s in reg:%i\n", s, r);
+    
     fprintf(outfile, "\tmov\t[%s], %s\n", s, registerList[r]);
     return r;
 }
 
 void Asm::globalSymbol(char* s) {
     printf("creating global symbol:%s\n",s);
+    
     fprintf(outfile, "\tcommon\t%s 8:8\n", s);
 }
+
+int Asm::compare(int r1, int r2, char* instruction) {
+    printf("comparing reg: %i and reg%i instruction: %s\n", r1,r2,instruction);
+    
+    fprintf(outfile, "\tcmp\t%s, %s\n", registerList[r1], registerList[r2]);
+    fprintf(outfile, "\t%s \t%s\n", instruction, bRegisterList[r2]);
+    fprintf(outfile, "\tand\t%s, 255\n", registerList[r2]);
+    
+    freeRegister(r1);
+    return r2;
+}
+
+int Asm::bangEq(int r1, int r2) {
+    return compare(r1,r2,(char*)"setne");
+}
+
+int Asm::eq(int r1, int r2) {
+    return compare(r1,r2,(char*)"sete");
+}
+
+int Asm::less(int r1, int r2) {
+    return compare(r1,r2,(char*)"setl");
+}
+
+int Asm::great(int r1, int r2) {
+    return compare(r1,r2,(char*)"setg");
+}
+
+int Asm::lessEq(int r1, int r2) {
+    return compare(r1,r2,(char*)"setle");
+}
+
+int Asm::greatEq(int r1, int r2) {
+    return compare(r1,r2,(char*)"setge");
+}
+
