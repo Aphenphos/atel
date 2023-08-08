@@ -27,9 +27,13 @@ enum TokenType {
 
 
     PRINT,
+    
+    HOLDER,
+
 
     END
 };
+
 
 
 
@@ -85,6 +89,7 @@ class Expression {
 
     public:
     Expression* left;
+    Expression* middle;
     Expression* right;
     TokenType op;
     union {
@@ -92,7 +97,7 @@ class Expression {
         int id;
     } value;
 
-    Expression(Expression* left, Expression* right, TokenType op, int intValue);
+    Expression(Expression* left, Expression* mid, Expression* right, TokenType op, int intValue);
     static Expression* init(void);
     static Expression* castPrimary(void);
     static Expression* binaryExpression(int prevTokenPrec);
@@ -104,21 +109,27 @@ class Expression {
 class Statement {
     public:
     static void statements(void);
-    static void printStatement(void);
-    static void assignmentStatement(void);
+    static Expression* printStatement(void);
+    static Expression* assignmentStatement(void);
     static void varDeclaration(void);
+    static Expression*  compoundStatement(void);
+    static Expression* ifStatement(void);
 };
 
 class Parse {
     private:
     static vector<Token> tokens;
+    static int labelCount;
+
+    static int label();
 
     public:
     static int current;
     static void initParser(vector<Token>* tokens);
     static void nextToken(void);
     static void parse(void);
-    static int interpretAST(Expression* tree, int r);
+    static int interpretAST(Expression* tree, int r, TokenType parent);
+    static int ifAST(Expression* n);
 };
 
 class Symbols {
@@ -141,13 +152,15 @@ class Asm {
     private:
     static FILE *outfile;
     static int compare(int r1, int r2, char* instruction);
+    static int freeRegisters[4];
+    const static char* registerList[4];
+    const static char* bRegisterList[4];
+    const static char* compareList[6];
+    const static char* jumpList[6];
 
 
     public:
     static void init(char* filename);
-    static int freeRegisters[4];
-    const static char* registerList[4];
-    const static char* bRegisterList[4];
 
     static void freeAllRegisters(void);
     static int allocateRegister(void);
@@ -173,4 +186,10 @@ class Asm {
     static int greatEq(int r1, int r2);
 
     static void printInt(int r);
+
+    static void jump(int r);
+    static void label(int r);
+
+    static int compareAndJump(TokenType instruction, int r1, int r2, int label);
+    static int compareAndSet(TokenType instruction, int r1, int r2);
 };

@@ -9,6 +9,7 @@ FILE* Asm::outfile;
 int Asm::freeRegisters[4];
 const char* Asm::registerList[4] = { "r8" , "r9" , "r10" , "r11" };
 const char* Asm::bRegisterList[4] ={ "r8b", "r9b", "r10b", "r11b" }; 
+
 void Asm::init(char* filename) {
 
     outfile = fopen(("%s.nasm", filename), "w");
@@ -159,26 +160,105 @@ int Asm::compare(int r1, int r2, char* instruction) {
 }
 
 int Asm::bangEq(int r1, int r2) {
-    return compare(r1,r2,(char*)"setne");
+    return compare(r1,r2,cp"setne");
 }
 
 int Asm::eq(int r1, int r2) {
-    return compare(r1,r2,(char*)"sete");
+    return compare(r1,r2,cp"sete");
 }
 
 int Asm::less(int r1, int r2) {
-    return compare(r1,r2,(char*)"setl");
+    return compare(r1,r2,cp"setl");
 }
 
 int Asm::great(int r1, int r2) {
-    return compare(r1,r2,(char*)"setg");
+    return compare(r1,r2,cp"setg");
 }
 
 int Asm::lessEq(int r1, int r2) {
-    return compare(r1,r2,(char*)"setle");
+    return compare(r1,r2,cp"setle");
 }
 
 int Asm::greatEq(int r1, int r2) {
-    return compare(r1,r2,(char*)"setge");
+    return compare(r1,r2,cp"setge");
 }
 
+const char* Asm::compareList[6] = { "sete", "setne", "setl", "setle", "setg", "setge"};
+const char* Asm::jumpList[6] = { "je", "jne", "jl", "jle", "jg", "jge"};
+
+void Asm::jump(int l) {
+    fprintf(outfile, "\tjmp\tL%d\n", l);
+}
+
+void Asm::label(int l) {
+    fprintf(outfile, "L%d:\n", l);
+}
+
+int Asm::compareAndSet(TokenType instruction, int r1, int r2) {
+    int operation;
+    
+    switch(instruction) {
+        case EQ_EQ:
+            operation = 0;
+            break;
+        case BANG_EQ:
+            operation = 1;
+            break;
+        case LESS:
+            operation = 2;
+            break;
+        case LESS_EQ:
+            operation = 3;
+            break;
+        case GREAT:
+            operation = 4;
+            break;
+        case GREAT_EQ:
+            operation = 5;
+            break;
+        default:
+            handleFatalError((char*)"Unrecognized compareAndSet");
+    }
+
+    printf("Comparing and Setting reg%i and reg%i, operation: %s\n", r1, r2, compareList[operation]);
+    fprintf(outfile, "\tcmp\t%s, %s\n", registerList[r1], registerList[r2]);
+    fprintf(outfile, "\t%s\t%s\n", compareList[operation], bRegisterList[r2]);
+    fprintf(outfile, "\tmovzb\t%s, %s\n", registerList[r2], bRegisterList[r2]);
+
+    freeRegister(r1);
+    return r2;
+}
+
+int Asm::compareAndJump(TokenType instruction, int r1, int r2, int label) {
+    int operation;
+    switch (instruction) {
+        case EQ_EQ:
+            operation = 1;
+            break;
+        case BANG_EQ:
+            operation = 0;
+            break;
+        case LESS:
+            operation = 5;
+            break;
+        case GREAT:
+            operation = 3;
+            break;
+        case LESS_EQ:
+            operation = 4;
+            break;
+        case GREAT_EQ:
+            operation = 2;
+            break;
+        default:
+            handleFatalError((char*)"Unrecognized compareAndJump");
+    }
+printf("Comparing and Jumping reg%i and reg%i, operation: %s\n", r1, r2, jumpList[operation]);
+
+    fprintf(outfile, "\tcmp\t%s, %s\n", registerList[r1], registerList[r2]);
+    fprintf(outfile, "\t%s\tL%d\n", jumpList[operation], label);
+
+    freeAllRegisters();
+
+    return -1;
+}

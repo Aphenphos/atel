@@ -5,6 +5,7 @@
 #include "defs.hpp"
 #include "globals.hpp"
 
+
 void Statement::statements(void) {
     while (1) {
         switch(currentToken.tokenType) {
@@ -29,20 +30,20 @@ void Statement::statements(void) {
 
 void Statement::varDeclaration(void) {
 
-    matchTokenAndString(INT, (char*)"int");
-    matchTokenAndString(IDENT, (char*)"ident");
+    matchTokenAndString(INT, cp"int");
+    matchTokenAndString(IDENT, cp"ident");
 
     Symbols::addGsymbol((char*)prevToken.literal.string);
     Asm::globalSymbol((char*)prevToken.literal.string);
     
-    matchTokenAndString(SEMICOLON, (char*)";");
+    matchTokenAndString(SEMICOLON, cp";");
 }
 
-void Statement::assignmentStatement(void) {
+Expression* Statement::assignmentStatement(void) {
     Expression* left, *right, *tree;
     int id;
 
-    matchTokenAndString(IDENT,(char*)"ident");
+    matchTokenAndString(IDENT,cp"ident");
 
     if ((id = Symbols::findGlobalSymbol(prevToken.literal.string)) == -1) {
         printf("Symbol not found : ");
@@ -51,27 +52,100 @@ void Statement::assignmentStatement(void) {
 
     right = Expression::castLeaf(LVIDENT, id);
 
-    matchTokenAndString(EQ,(char*) "=");
+    matchTokenAndString(EQ,cp "=");
 
     left = Expression::binaryExpression(0);
 
-    tree = new Expression(left,right,ASSIGN,0);
+    tree = new Expression(left, nullptr, right,ASSIGN,0);
 
-    Parse::interpretAST(tree, -1);
-    Asm::freeAllRegisters();
-    matchTokenAndString(SEMICOLON,(char*) ";");
+    matchTokenAndString(SEMICOLON,cp ";");
+
+    return tree;
 }
 
-void Statement::printStatement(void) {
+Expression* Statement::printStatement(void) {
     Expression* tree;
     int r;
 
-    matchTokenAndString(PRINT,(char*)"print");
+    matchTokenAndString(PRINT,cp"print");
 
     tree = Expression::binaryExpression(0);
-    r = Parse::interpretAST(tree, -1);
-    Asm::printInt(r);
-    Asm::freeAllRegisters();
 
-    matchTokenAndString(SEMICOLON,(char*)";");
+    tree = Expression::castUnary(PRINT,tree,0);
+
+    matchTokenAndString(SEMICOLON,cp";");
+
+    return tree;
+}
+
+Expression* Statement::compoundStatement(void) {
+    Expression* left = nullptr;
+    Expression* tree;
+
+    matchTokenAndString(LEFT_CURL,cp"{");
+
+    while (1) {
+        switch(currentToken.tokenType) {
+            case PRINT:
+                tree = printStatement();
+                break;
+            case INT:
+                varDeclaration();
+                tree = nullptr;
+                break;
+            case IDENT:
+                tree = assignmentStatement();
+                break;
+            case IF:
+                tree = ifStatement();
+                break;
+            case RIGHT_CURL:
+                matchTokenAndString(RIGHT_CURL,cp"}");
+                return left;
+            default:
+                handleSyntaxError();
+        }
+
+        if (tree) {
+            if (left == nullptr) {
+                left = tree;
+            }
+            else {
+                left = new Expression(left,nullptr,tree, HOLDER, 0);
+            }
+        }
+    }
+}
+
+Expression* Statement::ifStatement(void) {
+    Expression* condAST, *trueAST, *falseAST = nullptr;
+
+    matchTokenAndString(IF, (char*)"if");
+    matchTokenAndString(LEFT_PAREN, (char*)"(");
+
+    condAST = Expression::binaryExpression(0);
+
+    //will need to optomimze
+    switch(condAST->op) {
+        case EQ_EQ:
+        case BANG_EQ:
+        case LESS:
+        case LESS_EQ:
+        case GREAT:
+        case GREAT_EQ:
+            break;
+        default:
+            handleFatalError((char*)"Invalid conditional operator");
+    }
+
+    matchTokenAndString(RIGHT_PAREN, (char*)")");
+
+    trueAST = compoundStatement();
+
+    if (currentToken.tokenType == ELSE) {
+        Parse::nextToken();
+        falseAST = compoundStatement();
+    }
+
+    return new Expression( condAST, trueAST, falseAST, IF,  0);
 }

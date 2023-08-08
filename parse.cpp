@@ -10,6 +10,7 @@
 
 vector<Token> Parse::tokens;
 int Parse::current;
+int Parse::labelCount = 1;
 
 map<TokenType, int> Expression::opPrecValues = 
 {   
@@ -27,13 +28,17 @@ map<TokenType, int> Expression::opPrecValues =
     {GREAT_EQ, 40}
 };
 
-Expression::Expression(Expression* pleft, Expression* pright, TokenType pop, int pintValue) {
+Expression::Expression(Expression* pleft, Expression* pmid,  Expression* pright, TokenType pop, int pintValue) {
     left = pleft;
+    middle = pmid;
     right = pright;
     op = pop;
     value.intValue = pintValue;
 }
 
+int Parse::label(void) {
+    return(labelCount++);
+}
 
 void Parse::initParser(vector<Token>* ts) {
     cout << "_________Parser____________"<<endl;
@@ -47,15 +52,27 @@ void Parse::nextToken(void) {
     currentToken = tokens[current];
 }
 
-int Parse::interpretAST(Expression* n, int r) {
+int Parse::interpretAST(Expression* n, int r, TokenType parent) {
     int leftRegister, rightRegister;
-    if (n->left) {
-        leftRegister = Parse::interpretAST(n->left, -1);
-    }
-    if (n->right) {
-        rightRegister = Parse::interpretAST(n->right, leftRegister);
+
+    switch(n->op) {
+        case IF:
+            return ifAST(n);
+        case HOLDER:
+            interpretAST(n->left , -1, n->op );
+            Asm::freeAllRegisters();
+            interpretAST(n->right, -1, n->op);
+            Asm::freeAllRegisters();
+            return -1;
     }
 
+    if (n->left) {
+        leftRegister = Parse::interpretAST(n->left, -1, n->op);
+    }
+    if (n->right) {
+        rightRegister = Parse::interpretAST(n->right, leftRegister, n->op);
+    }
+    
     switch(n->op) {
         case PLUS:
             return Asm::add(leftRegister, rightRegister);
@@ -72,33 +89,66 @@ int Parse::interpretAST(Expression* n, int r) {
         case LVIDENT:
             return Asm::storeGlobalSymbol(r, Symbols::symbolTable[n->value.id].name);
         case EQ_EQ:
-            return Asm::eq(leftRegister, rightRegister);
         case BANG_EQ:
-            return Asm::bangEq(leftRegister, rightRegister);
-        case LESS:
-            return Asm::less(leftRegister, rightRegister);
+        case LESS:   
         case LESS_EQ:
-            return Asm::lessEq(leftRegister, rightRegister);
         case GREAT:
-            return Asm::great(leftRegister, rightRegister);
         case GREAT_EQ:
-            return Asm::greatEq(leftRegister, rightRegister);
-    
+            if (parent == IF) {
+                return Asm::compareAndJump(n->op, leftRegister, rightRegister, r);
+            } else {
+                return Asm::compareAndSet(n->op, leftRegister, rightRegister);
+            }
         case ASSIGN:
             return(rightRegister);
+        case PRINT:
+            Asm::printInt(leftRegister);
+            Asm::freeAllRegisters();
+            return -1;
         default:
-            fprintf(stderr, "Parsing error %d\0\n", n->op);
+            fprintf(stderr, "Parsing error while interpreting %d\0\n", n->op);
             exit(1);
     }
 
 }
 
+int Parse::ifAST(Expression* n) {
+    int lfalse, lend;
+
+    lfalse = label();
+
+    if (n->right) {
+        lend = label();
+    }
+
+    interpretAST(n->left, lfalse, n->op);
+    Asm::freeAllRegisters();
+
+    interpretAST(n->middle, -1, n->op);
+    Asm::freeAllRegisters();
+
+    if (n->right) {
+        Asm::jump(lend);
+    }
+
+    Asm::label(lfalse);
+
+    if (n->right) {
+        interpretAST(n->right, -1, n->op);
+        Asm::freeAllRegisters();
+        Asm::label(lend);
+    }
+
+    return -1;
+
+}
+
 Expression* Expression::castLeaf(TokenType op, int intValue) {
-    return(new Expression(nullptr, nullptr, op, intValue));
+    return(new Expression(nullptr, nullptr, nullptr, op, intValue));
 }
 
 Expression* Expression::castUnary(TokenType op, Expression* left, int intValue) {
-    return (new Expression(left, nullptr, op, intValue));
+    return (new Expression(left, nullptr, nullptr,  op, intValue));
 }
 
 Expression* Expression::castPrimary(void) {
@@ -126,20 +176,21 @@ Expression* Expression::castPrimary(void) {
 Expression* Expression::binaryExpression(int prevTokenPrec) {
     Expression* left, *right;
     TokenType type;
+
     left = castPrimary();
     type = currentToken.tokenType;
 
-    if (type == SEMICOLON) {
+    if (type == SEMICOLON || type == RIGHT_PAREN) {
         return(left);
     }
 
     while(getOpPrec(type) > prevTokenPrec) {
         Parse::nextToken();
         right = binaryExpression(opPrecValues.at(type));
-        left = new Expression(left, right, type, 0);
+        left = new Expression(left, nullptr, right, type, 0);
 
         type = currentToken.tokenType;
-        if (type == SEMICOLON) {
+        if (type == SEMICOLON || type == RIGHT_PAREN) {
             return (left);
         }
 

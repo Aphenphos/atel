@@ -1,6 +1,8 @@
 #pragma once
 
 
+#define cp (char*)
+
 extern char currentChar;
 extern char prevChar;
 extern int currentLine;

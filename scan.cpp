@@ -11,6 +11,20 @@
 using namespace std;
 
 vector<Token> tokens;
+map<string, TokenType> reservedWords = 
+{
+    {"true", TRUE},
+    {"false", FALSE},
+    {"while", WHILE},
+    {"if", IF},
+    {"else", ELSE},
+    {"int", INT},
+    {"return", RETURN},
+    {"const", CONST},
+    {"class", CLASS},
+    {"print", PRINT}
+
+};
 
 bool Scan::skipChar() {
     switch (currentChar) {

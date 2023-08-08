@@ -19,88 +19,25 @@ printint:
 _start:
 	push	rbp
 	mov	rbp, rsp
-	common	x 8:8
-	mov	r8, 7
-	mov	r9, 9
+	common	i 8:8
+	common	j 8:8
+	mov	r8, 6
+	mov	[i], r8
+	mov	r8, 12
+	mov	[j], r8
+	mov	r8, [i]
+	mov	r9, [j]
 	cmp	r8, r9
-	setl 	r9b
-	and	r9, 255
-	mov	[x], r9
-	mov	r8, [x]
+	jge	L1
+	mov	r8, [i]
 	mov	rdi, r8
 	call	printint
-	mov	r8, 7
-	mov	r9, 9
-	cmp	r8, r9
-	setle 	r9b
-	and	r9, 255
-	mov	[x], r9
-	mov	r8, [x]
+	jmp	L2
+L1:
+	mov	r8, [j]
 	mov	rdi, r8
 	call	printint
-	mov	r8, 7
-	mov	r9, 9
-	cmp	r8, r9
-	setne 	r9b
-	and	r9, 255
-	mov	[x], r9
-	mov	r8, [x]
-	mov	rdi, r8
-	call	printint
-	mov	r8, 7
-	mov	r9, 7
-	cmp	r8, r9
-	sete 	r9b
-	and	r9, 255
-	mov	[x], r9
-	mov	r8, [x]
-	mov	rdi, r8
-	call	printint
-	mov	r8, 7
-	mov	r9, 7
-	cmp	r8, r9
-	setge 	r9b
-	and	r9, 255
-	mov	[x], r9
-	mov	r8, [x]
-	mov	rdi, r8
-	call	printint
-	mov	r8, 7
-	mov	r9, 7
-	cmp	r8, r9
-	setle 	r9b
-	and	r9, 255
-	mov	[x], r9
-	mov	r8, [x]
-	mov	rdi, r8
-	call	printint
-	mov	r8, 9
-	mov	r9, 7
-	cmp	r8, r9
-	setg 	r9b
-	and	r9, 255
-	mov	[x], r9
-	mov	r8, [x]
-	mov	rdi, r8
-	call	printint
-	mov	r8, 9
-	mov	r9, 7
-	cmp	r8, r9
-	setge 	r9b
-	and	r9, 255
-	mov	[x], r9
-	mov	r8, [x]
-	mov	rdi, r8
-	call	printint
-	mov	r8, 9
-	mov	r9, 7
-	cmp	r8, r9
-	setne 	r9b
-	and	r9, 255
-	mov	[x], r9
-	mov	r8, [x]
-	mov	rdi, r8
-	call	printint
+L2:
 	mov	eax, 0
 	pop	rbp
 	ret

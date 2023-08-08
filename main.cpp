@@ -17,19 +17,6 @@ Token currentToken;
 Token prevToken;
 char currentLiteral[512];
 FILE *srcFile;
-map<string, TokenType> reservedWords = 
-{
-    {"true", TRUE},
-    {"false", FALSE},
-    {"while", WHILE},
-    {"if", IF},
-    {"int", INT},
-    {"return", RETURN},
-    {"const", CONST},
-    {"class", CLASS},
-    {"print", PRINT}
-
-};
 
 
 void init();
@@ -70,6 +57,7 @@ void run() {
 
     Asm::init((char *)"test.nasm");
     Asm::preamble();
-    Statement::statements();
+    Expression* tree = Statement::compoundStatement();
+    Parse::interpretAST(tree, -1, TokenType(-1));
     Asm::postamble();
 }
