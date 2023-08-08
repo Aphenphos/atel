@@ -52,25 +52,47 @@ void Parse::nextToken(void) {
     currentToken = tokens[current];
 }
 
-int Parse::interpretAST(Expression* n, int r, TokenType parent) {
+int Parse::whileAST(Expression* n) {
+    int lstart, lend;
+    
+
+    lstart = label();
+    lend = label();
+    Asm::label(lstart);
+
+    genAST(n->left, lend, n->op);
+    Asm::freeAllRegisters();
+
+    genAST(n->right, nr, n->op);
+    Asm::freeAllRegisters();
+
+    Asm::jump(lstart);
+    Asm::label(lend);
+    
+    return -1;
+}
+
+int Parse::genAST(Expression* n, int r, TokenType parent) {
     int leftRegister, rightRegister;
 
     switch(n->op) {
         case IF:
             return ifAST(n);
+        case WHILE:
+            return whileAST(n);
         case HOLDER:
-            interpretAST(n->left , -1, n->op );
+            genAST(n->left , nr, n->op );
             Asm::freeAllRegisters();
-            interpretAST(n->right, -1, n->op);
+            genAST(n->right, -1, n->op);
             Asm::freeAllRegisters();
-            return -1;
+            return nr;
     }
 
     if (n->left) {
-        leftRegister = Parse::interpretAST(n->left, -1, n->op);
+        leftRegister = Parse::genAST(n->left, -1, n->op);
     }
     if (n->right) {
-        rightRegister = Parse::interpretAST(n->right, leftRegister, n->op);
+        rightRegister = Parse::genAST(n->right, leftRegister, n->op);
     }
     
     switch(n->op) {
@@ -94,7 +116,7 @@ int Parse::interpretAST(Expression* n, int r, TokenType parent) {
         case LESS_EQ:
         case GREAT:
         case GREAT_EQ:
-            if (parent == IF) {
+            if (parent == IF || parent == WHILE) {
                 return Asm::compareAndJump(n->op, leftRegister, rightRegister, r);
             } else {
                 return Asm::compareAndSet(n->op, leftRegister, rightRegister);
@@ -104,7 +126,7 @@ int Parse::interpretAST(Expression* n, int r, TokenType parent) {
         case PRINT:
             Asm::printInt(leftRegister);
             Asm::freeAllRegisters();
-            return -1;
+            return nr;
         default:
             fprintf(stderr, "Parsing error while interpreting %d\0\n", n->op);
             exit(1);
@@ -121,10 +143,10 @@ int Parse::ifAST(Expression* n) {
         lend = label();
     }
 
-    interpretAST(n->left, lfalse, n->op);
+    genAST(n->left, lfalse, n->op);
     Asm::freeAllRegisters();
 
-    interpretAST(n->middle, -1, n->op);
+    genAST(n->middle, -1, n->op);
     Asm::freeAllRegisters();
 
     if (n->right) {
@@ -134,7 +156,7 @@ int Parse::ifAST(Expression* n) {
     Asm::label(lfalse);
 
     if (n->right) {
-        interpretAST(n->right, -1, n->op);
+        genAST(n->right, nr, n->op);
         Asm::freeAllRegisters();
         Asm::label(lend);
     }
@@ -212,3 +234,5 @@ int Expression::getOpPrec(TokenType type) {
 
     return prec;
 }
+
+

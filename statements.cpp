@@ -96,6 +96,9 @@ Expression* Statement::compoundStatement(void) {
             case IDENT:
                 tree = assignmentStatement();
                 break;
+            case WHILE:
+                tree = whileStatement();
+                break;
             case IF:
                 tree = ifStatement();
                 break;
@@ -120,8 +123,8 @@ Expression* Statement::compoundStatement(void) {
 Expression* Statement::ifStatement(void) {
     Expression* condAST, *trueAST, *falseAST = nullptr;
 
-    matchTokenAndString(IF, (char*)"if");
-    matchTokenAndString(LEFT_PAREN, (char*)"(");
+    matchTokenAndString(IF, cp"if");
+    matchTokenAndString(LEFT_PAREN, cp"(");
 
     condAST = Expression::binaryExpression(0);
 
@@ -135,10 +138,10 @@ Expression* Statement::ifStatement(void) {
         case GREAT_EQ:
             break;
         default:
-            handleFatalError((char*)"Invalid conditional operator");
+            handleFatalError(cp"Invalid conditional operator");
     }
 
-    matchTokenAndString(RIGHT_PAREN, (char*)")");
+    matchTokenAndString(RIGHT_PAREN, cp")");
 
     trueAST = compoundStatement();
 
@@ -148,4 +151,33 @@ Expression* Statement::ifStatement(void) {
     }
 
     return new Expression( condAST, trueAST, falseAST, IF,  0);
+}
+
+Expression* Statement::whileStatement(void) {
+    Expression* condAST, *bodyAST;
+
+    matchTokenAndString(WHILE,cp"while");
+    matchTokenAndString(LEFT_PAREN,cp"(");
+
+    condAST = Expression::binaryExpression(0);
+
+    //will need to optomimze
+    switch(condAST->op) {
+        case EQ_EQ:
+        case BANG_EQ:
+        case LESS:
+        case LESS_EQ:
+        case GREAT:
+        case GREAT_EQ:
+            break;
+        default:
+            handleFatalError(cp"Invalid conditional operator");
+    }
+
+    matchTokenAndString(RIGHT_PAREN,cp(")"));
+
+    bodyAST = compoundStatement();
+
+    return new Expression(condAST, nullptr, bodyAST, WHILE, 0);
+
 }

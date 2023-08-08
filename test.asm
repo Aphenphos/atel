@@ -1,4 +1,4 @@
-	global	main
+	global	_start
 	extern	printf
 	section	.text
 LC0:	db	"%d",10,0
@@ -16,25 +16,27 @@ printint:
 	leave
 	ret
 
-main:
+_start:
 	push	rbp
 	mov	rbp, rsp
 	common	i 8:8
-	mov	r8, 1
+	common	j 8:8
+	mov	r8, 6
 	mov	[i], r8
-L1:
+	mov	r8, 12
+	mov	[j], r8
 	mov	r8, [i]
-	mov	r9, 10
+	mov	r9, [j]
 	cmp	r8, r9
-	jg	L2
+	jle	L1
 	mov	r8, [i]
 	mov	rdi, r8
 	call	printint
-	mov	r8, [i]
-	mov	r9, 1
-	add	r9, r8
-	mov	[i], r9
-	jmp	L1
+	jmp	L2
+L1:
+	mov	r8, [j]
+	mov	rdi, r8
+	call	printint
 L2:
 	mov	eax, 0
 	pop	rbp

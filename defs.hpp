@@ -114,6 +114,7 @@ class Statement {
     static void varDeclaration(void);
     static Expression*  compoundStatement(void);
     static Expression* ifStatement(void);
+    static Expression* whileStatement(void);
 };
 
 class Parse {
@@ -128,8 +129,9 @@ class Parse {
     static void initParser(vector<Token>* tokens);
     static void nextToken(void);
     static void parse(void);
-    static int interpretAST(Expression* tree, int r, TokenType parent);
+    static int genAST(Expression* tree, int r, TokenType parent);
     static int ifAST(Expression* n);
+    static int whileAST(Expression* n);
 };
 
 class Symbols {

@@ -47,7 +47,7 @@ void Asm::freeRegister(int r) {
 }
 
 void Asm::preamble(void) {
-    fputs("\tglobal\t_start\n"
+    fputs("\tglobal\tmain\n"
 	"\textern\tprintf\n"
 	"\tsection\t.text\n"
 	"LC0:\tdb\t\"%d\",10,0\n"
@@ -65,7 +65,7 @@ void Asm::preamble(void) {
 	"\tleave\n"
 	"\tret\n"
 	"\n"
-	"_start:\n" "\tpush\trbp\n" "\tmov	rbp, rsp\n", outfile);
+	"main:\n" "\tpush\trbp\n" "\tmov	rbp, rsp\n", outfile);
 
 }
 
@@ -217,13 +217,13 @@ int Asm::compareAndSet(TokenType instruction, int r1, int r2) {
             operation = 5;
             break;
         default:
-            handleFatalError((char*)"Unrecognized compareAndSet");
+            handleFatalError(cp"Unrecognized compareAndSet");
     }
 
     printf("Comparing and Setting reg%i and reg%i, operation: %s\n", r1, r2, compareList[operation]);
     fprintf(outfile, "\tcmp\t%s, %s\n", registerList[r1], registerList[r2]);
     fprintf(outfile, "\t%s\t%s\n", compareList[operation], bRegisterList[r2]);
-    fprintf(outfile, "\tmovzb\t%s, %s\n", registerList[r2], bRegisterList[r2]);
+    fprintf(outfile, "\tmovzx\t%s, %s\n", registerList[r2], bRegisterList[r2]);
 
     freeRegister(r1);
     return r2;
@@ -251,7 +251,7 @@ int Asm::compareAndJump(TokenType instruction, int r1, int r2, int label) {
             operation = 2;
             break;
         default:
-            handleFatalError((char*)"Unrecognized compareAndJump");
+            handleFatalError(cp"Unrecognized compareAndJump");
     }
 printf("Comparing and Jumping reg%i and reg%i, operation: %s\n", r1, r2, jumpList[operation]);
 
@@ -260,5 +260,5 @@ printf("Comparing and Jumping reg%i and reg%i, operation: %s\n", r1, r2, jumpLis
 
     freeAllRegisters();
 
-    return -1;
+    return nr;
 }

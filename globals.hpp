@@ -1,7 +1,10 @@
 #pragma once
 
-
+//Char Pointer
 #define cp (char*)
+//No Register
+#define nr -1
+
 
 extern char currentChar;
 extern char prevChar;

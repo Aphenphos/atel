@@ -58,6 +58,6 @@ void run() {
     Asm::init((char *)"test.nasm");
     Asm::preamble();
     Expression* tree = Statement::compoundStatement();
-    Parse::interpretAST(tree, -1, TokenType(-1));
+    Parse::genAST(tree, nr, TokenType(-1));
     Asm::postamble();
 }
