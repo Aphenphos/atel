@@ -22,8 +22,8 @@ map<string, TokenType> reservedWords =
     {"return", RETURN},
     {"const", CONST},
     {"class", CLASS},
-    {"print", PRINT}
-
+    {"print", PRINT},
+    {"for", FOR}
 };
 
 bool Scan::skipChar() {

@@ -49,7 +49,7 @@ void run() {
     Scan scanner;
     scanner.nextChar();
     vector<Token> tokenList = scanner.scanToken();
-    scanner.printTokens();
+    // scanner.printTokens();
 
     vector<Token>* tokensPointer = &scanner.tokens;
     

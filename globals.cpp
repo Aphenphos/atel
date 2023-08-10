@@ -5,12 +5,13 @@
 #include "defs.hpp"
 #include "globals.hpp"
 
-void matchTokenAndString(TokenType type, char string[]) {
+void checkCurToken(TokenType type) {
     if (currentToken.tokenType == type) {
         prevToken = currentToken;
         Parse::nextToken();
     } else {
-        printf("%s expected on line %d", string, currentLine);
+
+        printf("%d expected , got %d", type, currentToken.tokenType);
         exit(1);
     }
 }

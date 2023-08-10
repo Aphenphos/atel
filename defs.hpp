@@ -8,7 +8,7 @@
 using namespace std;
 
 enum TokenType {
-    LEFT_PAREN, RIGHT_PAREN, LEFT_CURL, RIGHT_CURL,
+    LEFT_PAREN=1, RIGHT_PAREN, LEFT_CURL, RIGHT_CURL,
     LEFT_BRACE, RIGHT_BRACE, COMMA, DOT, MINUS, PLUS, 
     SEMICOLON, SLASH, STAR,
 
@@ -17,7 +17,7 @@ enum TokenType {
     GREAT, GREAT_EQ,
     LESS, LESS_EQ,
 
-    ASSIGN, INT, LVIDENT, IDENT, STRING, INTLIT,
+    INT, LVIDENT, IDENT, STRING, INTLIT,
 
     CLASS,
 
@@ -34,11 +34,38 @@ enum TokenType {
     END
 };
 
+const string TokenTypeArr[] = {
+    "LEFT_PAREN","RIGHT_PAREN", "LEFT_CURL", "RIGHT_CURL",
+    "LEFT_BRACE", "RIGHT_BRACE", "COMMA", "DOT", "MINUS", "PLUS", 
+    "SEMICOLON", "SLASH", "STAR",
+
+    "BANG", "BANG_EQ",
+    "EQ", "EQ_EQ",
+    "GREAT", "GREAT_EQ",
+    "LESS","LESS_EQ",
+
+    "INT", "LVIDENT", "IDENT", "STRING", "INTLIT",
+
+    "CLASS",
+
+    "AND", "ELSE", "TRUE", "FALSE",
+    "FOR", "IF", "OR","WHILE", "RETURN",
+    "VAR","CONST",
+
+
+    "PRINT",
+    
+    "HOLDER",
+
+
+    "END"
+};
+
 
 
 
 extern map<string, TokenType> reservedWords;
-void matchTokenAndString(TokenType type, char* string);
+void checkCurToken(TokenType type);
 
 struct Token {
     TokenType tokenType;
@@ -48,7 +75,7 @@ struct Token {
     } literal;
 
     void print(void) {
-        printf("TokenType: %d \n", tokenType);
+        cout << "Token Type: " + TokenTypeArr[tokenType - 1] << endl;
         if (literal.string != nullptr) {
             printf("stringLit: ");
             cout << literal.string << endl;
@@ -113,8 +140,10 @@ class Statement {
     static Expression* assignmentStatement(void);
     static void varDeclaration(void);
     static Expression*  compoundStatement(void);
+    static Expression* singleStatement(void);
     static Expression* ifStatement(void);
     static Expression* whileStatement(void);
+    static Expression* forStatement(void);
 };
 
 class Parse {

@@ -6,44 +6,23 @@
 #include "globals.hpp"
 
 
-void Statement::statements(void) {
-    while (1) {
-        switch(currentToken.tokenType) {
-            case PRINT:
-                printStatement();
-                break;
-            case INT:
-                varDeclaration();
-                break;
-            case IDENT:
-                assignmentStatement();
-                break;
-            case END:
-                return;
-            default:
-                printf("invalid Statement : ");
-                handleSyntaxError();
-        }
-        
-    }
-}
 
 void Statement::varDeclaration(void) {
 
-    matchTokenAndString(INT, cp"int");
-    matchTokenAndString(IDENT, cp"ident");
+    checkCurToken(INT);
+    checkCurToken(IDENT);
 
     Symbols::addGsymbol((char*)prevToken.literal.string);
     Asm::globalSymbol((char*)prevToken.literal.string);
     
-    matchTokenAndString(SEMICOLON, cp";");
+    checkCurToken(SEMICOLON);
 }
 
 Expression* Statement::assignmentStatement(void) {
     Expression* left, *right, *tree;
     int id;
 
-    matchTokenAndString(IDENT,cp"ident");
+    checkCurToken(IDENT);
 
     if ((id = Symbols::findGlobalSymbol(prevToken.literal.string)) == -1) {
         printf("Symbol not found : ");
@@ -52,13 +31,11 @@ Expression* Statement::assignmentStatement(void) {
 
     right = Expression::castLeaf(LVIDENT, id);
 
-    matchTokenAndString(EQ,cp "=");
+    checkCurToken(EQ);
 
     left = Expression::binaryExpression(0);
 
-    tree = new Expression(left, nullptr, right,ASSIGN,0);
-
-    matchTokenAndString(SEMICOLON,cp ";");
+    tree = new Expression(left, nullptr, right, EQ ,0);
 
     return tree;
 }
@@ -67,55 +44,61 @@ Expression* Statement::printStatement(void) {
     Expression* tree;
     int r;
 
-    matchTokenAndString(PRINT,cp"print");
+    checkCurToken(PRINT);
 
     tree = Expression::binaryExpression(0);
 
     tree = Expression::castUnary(PRINT,tree,0);
 
-    matchTokenAndString(SEMICOLON,cp";");
-
     return tree;
+}
+
+Expression* Statement::singleStatement(void) {
+    switch(currentToken.tokenType) {
+        case PRINT:
+            return printStatement();
+        case INT:
+            varDeclaration();
+            return nullptr;
+        case IDENT:
+            return assignmentStatement();
+        case WHILE:
+            return whileStatement();
+        case IF:
+            return ifStatement();
+        case FOR:
+            return forStatement();
+        default:
+            handleSyntaxError();
+            exit(1);
+    }
 }
 
 Expression* Statement::compoundStatement(void) {
     Expression* left = nullptr;
     Expression* tree;
 
-    matchTokenAndString(LEFT_CURL,cp"{");
+    checkCurToken(LEFT_CURL);
 
     while (1) {
-        switch(currentToken.tokenType) {
-            case PRINT:
-                tree = printStatement();
-                break;
-            case INT:
-                varDeclaration();
-                tree = nullptr;
-                break;
-            case IDENT:
-                tree = assignmentStatement();
-                break;
-            case WHILE:
-                tree = whileStatement();
-                break;
-            case IF:
-                tree = ifStatement();
-                break;
-            case RIGHT_CURL:
-                matchTokenAndString(RIGHT_CURL,cp"}");
-                return left;
-            default:
-                handleSyntaxError();
-        }
+        tree = singleStatement();
 
-        if (tree) {
+         if (tree != nullptr && (tree->op == PRINT || tree->op == EQ)) {
+            checkCurToken(SEMICOLON);   
+         }
+
+
+        if (tree != nullptr) {
             if (left == nullptr) {
                 left = tree;
+            } else {
+                left = new Expression(left, nullptr, tree, HOLDER, 0);
             }
-            else {
-                left = new Expression(left,nullptr,tree, HOLDER, 0);
-            }
+        }
+
+        if (currentToken.tokenType == RIGHT_CURL) {
+            checkCurToken(RIGHT_CURL);
+            return left;
         }
     }
 }
@@ -123,8 +106,8 @@ Expression* Statement::compoundStatement(void) {
 Expression* Statement::ifStatement(void) {
     Expression* condAST, *trueAST, *falseAST = nullptr;
 
-    matchTokenAndString(IF, cp"if");
-    matchTokenAndString(LEFT_PAREN, cp"(");
+    checkCurToken(IF);
+    checkCurToken(LEFT_PAREN);
 
     condAST = Expression::binaryExpression(0);
 
@@ -141,7 +124,7 @@ Expression* Statement::ifStatement(void) {
             handleFatalError(cp"Invalid conditional operator");
     }
 
-    matchTokenAndString(RIGHT_PAREN, cp")");
+    checkCurToken(RIGHT_PAREN);
 
     trueAST = compoundStatement();
 
@@ -156,8 +139,8 @@ Expression* Statement::ifStatement(void) {
 Expression* Statement::whileStatement(void) {
     Expression* condAST, *bodyAST;
 
-    matchTokenAndString(WHILE,cp"while");
-    matchTokenAndString(LEFT_PAREN,cp"(");
+    checkCurToken(WHILE);
+    checkCurToken(LEFT_PAREN);
 
     condAST = Expression::binaryExpression(0);
 
@@ -174,10 +157,48 @@ Expression* Statement::whileStatement(void) {
             handleFatalError(cp"Invalid conditional operator");
     }
 
-    matchTokenAndString(RIGHT_PAREN,cp(")"));
+    checkCurToken(RIGHT_PAREN);
 
     bodyAST = compoundStatement();
 
     return new Expression(condAST, nullptr, bodyAST, WHILE, 0);
+
+}
+
+Expression* Statement::forStatement(void) {
+    Expression *condAST, *bodyAST, *preAST, *postAST, *tree;
+
+    checkCurToken(FOR);
+    checkCurToken(LEFT_PAREN);
+
+    preAST = singleStatement();
+    checkCurToken(SEMICOLON);
+    
+    condAST = Expression::binaryExpression(0);
+    
+    switch(condAST->op) {
+        case EQ_EQ:
+        case BANG_EQ:
+        case LESS:
+        case LESS_EQ:
+        case GREAT:
+        case GREAT_EQ:
+            break;
+        default:
+            handleFatalError(cp"Invalid conditional operator");
+    }
+    checkCurToken(SEMICOLON);
+
+    postAST = singleStatement();
+    checkCurToken(RIGHT_PAREN);
+
+    bodyAST = compoundStatement();
+
+    tree = new Expression(bodyAST, nullptr, postAST, HOLDER, 0);
+
+    tree = new Expression(condAST, nullptr, tree, WHILE, 0);
+
+    return new Expression(preAST, nullptr, tree, HOLDER, 0);
+
 
 }

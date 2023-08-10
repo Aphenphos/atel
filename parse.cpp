@@ -121,7 +121,7 @@ int Parse::genAST(Expression* n, int r, TokenType parent) {
             } else {
                 return Asm::compareAndSet(n->op, leftRegister, rightRegister);
             }
-        case ASSIGN:
+        case EQ:
             return(rightRegister);
         case PRINT:
             Asm::printInt(leftRegister);
@@ -188,7 +188,7 @@ Expression* Expression::castPrimary(void) {
             node = castLeaf(IDENT, id);
             break;
         default:
-            fprintf(stderr, "Parsing error %d", node->op);
+            fprintf(stderr, "Parsing error %d", currentToken.tokenType);
             exit(1);
     }
     Parse::nextToken();
