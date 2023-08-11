@@ -17,9 +17,11 @@ enum TokenType {
     GREAT, GREAT_EQ,
     LESS, LESS_EQ,
 
-    INT, LVIDENT, IDENT, STRING, INTLIT,
+    INT, VOID, CHAR,
+    
+    LVIDENT, IDENT, STRING, INTLIT,
 
-    CLASS,
+    CLASS, FUNCTION,
 
     AND, ELSE, TRUE, FALSE,
     FOR, IF, OR, WHILE, RETURN,
@@ -44,9 +46,11 @@ const string TokenTypeArr[] = {
     "GREAT", "GREAT_EQ",
     "LESS","LESS_EQ",
 
-    "INT", "LVIDENT", "IDENT", "STRING", "INTLIT",
+    "INT", "VOID", "CHAR",
 
-    "CLASS",
+    "LVIDENT", "IDENT", "STRING", "INTLIT",
+
+    "CLASS", "FUNCTION",
 
     "AND", "ELSE", "TRUE", "FALSE",
     "FOR", "IF", "OR","WHILE", "RETURN",
@@ -139,6 +143,7 @@ class Statement {
     static Expression* printStatement(void);
     static Expression* assignmentStatement(void);
     static void varDeclaration(void);
+    static Expression* funcDeclaration(void);
     static Expression*  compoundStatement(void);
     static Expression* singleStatement(void);
     static Expression* ifStatement(void);
@@ -167,6 +172,8 @@ class Symbols {
     public:
     struct Symbol {
         char* name;
+        TokenType type;
+        
     };
     static int globalSymbolsCount;
     static Symbol symbolTable[1024];
@@ -217,6 +224,9 @@ class Asm {
     static int greatEq(int r1, int r2);
 
     static void printInt(int r);
+
+    static void funcPreamble(char* s);
+    static void funcPostamble(void);
 
     static void jump(int r);
     static void label(int r);

@@ -80,6 +80,11 @@ int Parse::genAST(Expression* n, int r, TokenType parent) {
             return ifAST(n);
         case WHILE:
             return whileAST(n);
+        case FUNCTION:
+            Asm::funcPreamble(Symbols::symbolTable[n->value.id].name);
+            genAST(n->left, nr, n->op);
+            Asm::funcPostamble();
+            return nr;
         case HOLDER:
             genAST(n->left , nr, n->op );
             Asm::freeAllRegisters();
@@ -236,3 +241,18 @@ int Expression::getOpPrec(TokenType type) {
 }
 
 
+Expression* Statement::funcDeclaration(void) {
+    Expression* tree;
+    int nameSlot;
+
+    checkCurToken(VOID);
+    checkCurToken(IDENT);
+
+    nameSlot = Symbols::addGsymbol((char*)prevToken.literal.string);
+    checkCurToken(LEFT_PAREN);
+    checkCurToken(RIGHT_PAREN);
+
+    tree = Statement::compoundStatement();
+
+    return Expression::castUnary(FUNCTION, tree, nameSlot);
+}

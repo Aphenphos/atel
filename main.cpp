@@ -49,7 +49,7 @@ void run() {
     Scan scanner;
     scanner.nextChar();
     vector<Token> tokenList = scanner.scanToken();
-    // scanner.printTokens();
+    scanner.printTokens();
 
     vector<Token>* tokensPointer = &scanner.tokens;
     
@@ -57,7 +57,13 @@ void run() {
 
     Asm::init((char *)"test.nasm");
     Asm::preamble();
-    Expression* tree = Statement::compoundStatement();
-    Parse::genAST(tree, nr, TokenType(-1));
-    Asm::postamble();
+    Expression* tree;
+    while (1) {
+        tree = Statement::funcDeclaration();
+        Parse::genAST(tree, nr, TokenType(-1));
+        if (currentToken.tokenType == END) {
+            break;
+        }
+    }
+    return;
 }

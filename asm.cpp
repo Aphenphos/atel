@@ -47,7 +47,10 @@ void Asm::freeRegister(int r) {
 }
 
 void Asm::preamble(void) {
-    fputs("\tglobal\tmain\n"
+    freeAllRegisters();
+
+
+   fputs("\tglobal\tmain\n"
 	"\textern\tprintf\n"
 	"\tsection\t.text\n"
 	"LC0:\tdb\t\"%d\",10,0\n"
@@ -60,12 +63,7 @@ void Asm::preamble(void) {
 	"\tmov\tesi, eax\n"
 	"\tlea	rdi, [rel LC0]\n"
 	"\tmov	eax, 0\n"
-	"\tcall	printf\n"
-	"\tnop\n"
-	"\tleave\n"
-	"\tret\n"
-	"\n"
-	"main:\n" "\tpush\trbp\n" "\tmov	rbp, rsp\n", outfile);
+	"\tcall	printf\n" "\tnop\n" "\tleave\n" "\tret\n" "\n", outfile);
 
 }
 
@@ -253,7 +251,7 @@ int Asm::compareAndJump(TokenType instruction, int r1, int r2, int label) {
         default:
             handleFatalError(cp"Unrecognized compareAndJump");
     }
-printf("Comparing and Jumping reg%i and reg%i, operation: %s\n", r1, r2, jumpList[operation]);
+    printf("Comparing and Jumping reg%i and reg%i, operation: %s\n", r1, r2, jumpList[operation]);
 
     fprintf(outfile, "\tcmp\t%s, %s\n", registerList[r1], registerList[r2]);
     fprintf(outfile, "\t%s\tL%d\n", jumpList[operation], label);
@@ -261,4 +259,16 @@ printf("Comparing and Jumping reg%i and reg%i, operation: %s\n", r1, r2, jumpLis
     freeAllRegisters();
 
     return nr;
+}
+
+void Asm::funcPreamble(char* s) {
+      fprintf(outfile,
+	  "\tsection\t.text\n"
+	  "\tglobal\t%s\n"
+	  "%s:\n" "\tpush\trbp\n"
+	  "\tmov\trbp, rsp\n", s, s);
+}
+
+void Asm::funcPostamble(void) {
+    fputs("\tmov	eax, 0\n" "\tpop	rbp\n" "\tret\n", outfile);
 }
