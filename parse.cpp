@@ -28,11 +28,12 @@ map<TokenType, int> Expression::opPrecValues =
     {GREAT_EQ, 40}
 };
 
-Expression::Expression(Expression* pleft, Expression* pmid,  Expression* pright, TokenType pop, int pintValue) {
+Expression::Expression(Expression* pleft, Expression* pmid,  Expression* pright, TokenType pop, TokenType ptype, int pintValue) {
     left = pleft;
     middle = pmid;
     right = pright;
     op = pop;
+    type = ptype;
     value.intValue = pintValue;
 }
 
@@ -132,6 +133,8 @@ int Parse::genAST(Expression* n, int r, TokenType parent) {
             Asm::printInt(leftRegister);
             Asm::freeAllRegisters();
             return nr;
+        case WIDEN:
+            return Asm::widen(leftRegister);
         default:
             fprintf(stderr, "Parsing error while interpreting %d\0\n", n->op);
             exit(1);
@@ -168,91 +171,4 @@ int Parse::ifAST(Expression* n) {
 
     return -1;
 
-}
-
-Expression* Expression::castLeaf(TokenType op, int intValue) {
-    return(new Expression(nullptr, nullptr, nullptr, op, intValue));
-}
-
-Expression* Expression::castUnary(TokenType op, Expression* left, int intValue) {
-    return (new Expression(left, nullptr, nullptr,  op, intValue));
-}
-
-Expression* Expression::castPrimary(void) {
-    Expression* node;
-    int id;
-    switch(currentToken.tokenType) {
-        case INTLIT:
-            node = castLeaf(INTLIT, currentToken.literal.intLiteral);
-            break;
-        case IDENT:
-            id = Symbols::findGlobalSymbol(currentToken.literal.string);
-            if (id == -1) {
-                handleUnknownVar();
-            }
-            node = castLeaf(IDENT, id);
-            break;
-        default:
-            fprintf(stderr, "Parsing error %d", currentToken.tokenType);
-            exit(1);
-    }
-    Parse::nextToken();
-    return node;
-}
-
-Expression* Expression::binaryExpression(int prevTokenPrec) {
-    Expression* left, *right;
-    TokenType type;
-
-    left = castPrimary();
-    type = currentToken.tokenType;
-
-    if (type == SEMICOLON || type == RIGHT_PAREN) {
-        return(left);
-    }
-
-    while(getOpPrec(type) > prevTokenPrec) {
-        Parse::nextToken();
-        right = binaryExpression(opPrecValues.at(type));
-        left = new Expression(left, nullptr, right, type, 0);
-
-        type = currentToken.tokenType;
-        if (type == SEMICOLON || type == RIGHT_PAREN) {
-            return (left);
-        }
-
-    }
-    return left;
-}
-
-
-Expression* Expression::init(void) {
-    return binaryExpression(0);
-}
-
-int Expression::getOpPrec(TokenType type) {
-    int prec = opPrecValues.at(type);
-    if (prec == 0) {
-        fprintf(stderr, "syntax error on line:%d token: %d", currentLine, type);
-        exit(1);
-    }
-
-    return prec;
-}
-
-
-Expression* Statement::funcDeclaration(void) {
-    Expression* tree;
-    int nameSlot;
-
-    checkCurToken(VOID);
-    checkCurToken(IDENT);
-
-    nameSlot = Symbols::addGsymbol((char*)prevToken.literal.string);
-    checkCurToken(LEFT_PAREN);
-    checkCurToken(RIGHT_PAREN);
-
-    tree = Statement::compoundStatement();
-
-    return Expression::castUnary(FUNCTION, tree, nameSlot);
 }

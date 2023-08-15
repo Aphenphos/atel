@@ -21,7 +21,7 @@ int Symbols::findGlobalSymbol(char* s) {
     return -1;
 }
 
-int Symbols::addGsymbol(char* s) {
+int Symbols::addGsymbol(char* s, TokenType type, TokenType sType) {
     int i;
 
     if ((i = findGlobalSymbol(s)) != -1) {
@@ -30,6 +30,9 @@ int Symbols::addGsymbol(char* s) {
 
     i = newGlobalSymbol();
     symbolTable[i].name = strdup(s);
+    symbolTable[i].type = type;
+    symbolTable[i].sType = sType;
+    
     return i;
 }
 

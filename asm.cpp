@@ -140,10 +140,9 @@ int Asm::storeGlobalSymbol(int r, char* s) {
     return r;
 }
 
-void Asm::globalSymbol(char* s) {
-    printf("creating global symbol:%s\n",s);
+void Asm::globalSymbol(int id) {
+    printf("creating global symbol:%s\n", Symbols::symbolTable[id].name);
     
-    fprintf(outfile, "\tcommon\t%s 8:8\n", s);
 }
 
 int Asm::compare(int r1, int r2, char* instruction) {
@@ -271,4 +270,8 @@ void Asm::funcPreamble(char* s) {
 
 void Asm::funcPostamble(void) {
     fputs("\tmov	eax, 0\n" "\tpop	rbp\n" "\tret\n", outfile);
+}
+
+int Asm::widen(int r) {
+    return r;
 }

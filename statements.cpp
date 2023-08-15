@@ -8,18 +8,20 @@
 
 
 void Statement::varDeclaration(void) {
+    int id;
 
-    checkCurToken(INT);
+    Parse::nextToken();
     checkCurToken(IDENT);
 
-    Symbols::addGsymbol((char*)prevToken.literal.string);
-    Asm::globalSymbol((char*)prevToken.literal.string);
+    id = Symbols::addGsymbol((char*)prevToken.literal.string, prevToken.tokenType, VAR);
+    Asm::globalSymbol(id);
     
     checkCurToken(SEMICOLON);
 }
 
 Expression* Statement::assignmentStatement(void) {
     Expression* left, *right, *tree;
+    TokenType leftType, rightType;
     int id;
 
     checkCurToken(IDENT);
@@ -29,26 +31,39 @@ Expression* Statement::assignmentStatement(void) {
         handleSyntaxError();
     }
 
-    right = Expression::castLeaf(LVIDENT, id);
+    right = Expression::castLeaf(LVIDENT, Symbols::symbolTable[id].type, id);
 
     checkCurToken(EQ);
 
     left = Expression::binaryExpression(0);
 
-    tree = new Expression(left, nullptr, right, EQ ,0);
+    leftType = left->type; rightType = right->type;
+    if (!Types::compatible(leftType,rightType, true)) handleFatalError(cp"Type Error");
+
+    if (leftType != EMPTY) left = Expression::castUnary(leftType, right->type, left, 0);
+
+    tree = new Expression(left, nullptr, right, EQ , INT, 0);
 
     return tree;
 }
 
 Expression* Statement::printStatement(void) {
     Expression* tree;
+    TokenType leftType, rightType;
     int r;
 
     checkCurToken(PRINT);
 
     tree = Expression::binaryExpression(0);
 
-    tree = Expression::castUnary(PRINT,tree,0);
+    leftType = INT;
+    rightType = tree->type;
+    if (!Types::compatible(leftType, &rightType, false)) handleFatalError(cp"Type Error");
+
+    if (rightType != EMPTY)
+        tree = Expression::castUnary(rightType, INT, tree, 0);
+    
+    tree = Expression::castUnary(PRINT, EMPTY, tree, 0);
 
     return tree;
 }
@@ -57,6 +72,7 @@ Expression* Statement::singleStatement(void) {
     switch(currentToken.tokenType) {
         case PRINT:
             return printStatement();
+        case CHAR:
         case INT:
             varDeclaration();
             return nullptr;
@@ -92,7 +108,7 @@ Expression* Statement::compoundStatement(void) {
             if (left == nullptr) {
                 left = tree;
             } else {
-                left = new Expression(left, nullptr, tree, HOLDER, 0);
+                left = new Expression(left, nullptr, tree, HOLDER, EMPTY, 0);
             }
         }
 
@@ -133,7 +149,7 @@ Expression* Statement::ifStatement(void) {
         falseAST = compoundStatement();
     }
 
-    return new Expression( condAST, trueAST, falseAST, IF,  0);
+    return new Expression( condAST, trueAST, falseAST, IF, EMPTY, 0);
 }
 
 Expression* Statement::whileStatement(void) {
@@ -161,7 +177,7 @@ Expression* Statement::whileStatement(void) {
 
     bodyAST = compoundStatement();
 
-    return new Expression(condAST, nullptr, bodyAST, WHILE, 0);
+    return new Expression(condAST, nullptr, bodyAST, WHILE, EMPTY, 0);
 
 }
 
@@ -194,11 +210,28 @@ Expression* Statement::forStatement(void) {
 
     bodyAST = compoundStatement();
 
-    tree = new Expression(bodyAST, nullptr, postAST, HOLDER, 0);
+    tree = new Expression(bodyAST, nullptr, postAST, HOLDER, EMPTY, 0);
 
-    tree = new Expression(condAST, nullptr, tree, WHILE, 0);
+    tree = new Expression(condAST, nullptr, tree, WHILE, EMPTY,0);
 
-    return new Expression(preAST, nullptr, tree, HOLDER, 0);
+    return new Expression(preAST, nullptr, tree, HOLDER, EMPTY, 0);
 
 
+}
+
+
+Expression* Statement::funcDeclaration(void) {
+    Expression* tree;
+    int nameSlot;
+
+    checkCurToken(VOID);
+    checkCurToken(IDENT);
+
+    nameSlot = Symbols::addGsymbol((char*)prevToken.literal.string, VOID, FUNCTION);
+    checkCurToken(LEFT_PAREN);
+    checkCurToken(RIGHT_PAREN);
+
+    tree = Statement::compoundStatement();
+
+    return Expression::castUnary(FUNCTION, VOID, tree,  nameSlot);
 }

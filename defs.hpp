@@ -30,7 +30,7 @@ enum TokenType {
 
     PRINT,
     
-    HOLDER,
+    HOLDER, EMPTY, WIDEN,
 
 
     END
@@ -59,7 +59,7 @@ const string TokenTypeArr[] = {
 
     "PRINT",
     
-    "HOLDER",
+    "HOLDER", "EMPTY", "WIDEN",
 
 
     "END"
@@ -122,18 +122,18 @@ class Expression {
     Expression* left;
     Expression* middle;
     Expression* right;
-    TokenType op;
+    TokenType op, type;
     union {
         int intValue;
         int id;
     } value;
 
-    Expression(Expression* left, Expression* mid, Expression* right, TokenType op, int intValue);
+    Expression(Expression* left, Expression* mid, Expression* right, TokenType op, TokenType type, int intValue);
     static Expression* init(void);
     static Expression* castPrimary(void);
     static Expression* binaryExpression(int prevTokenPrec);
-    static Expression* castLeaf(TokenType op, int intValue);
-    static Expression* castUnary(TokenType op, Expression* left, int intValue);
+    static Expression* castLeaf(TokenType op, TokenType type, int intValue);
+    static Expression* castUnary(TokenType op, TokenType type, Expression* left, int intValue);
     static int getOpPrec(TokenType type);
 };
 
@@ -173,18 +173,22 @@ class Symbols {
     struct Symbol {
         char* name;
         TokenType type;
-        
+        TokenType sType;
     };
     static int globalSymbolsCount;
     static Symbol symbolTable[1024];
     static int findGlobalSymbol(char* s);
     static int newGlobalSymbol(void);
-    static int addGsymbol(char* s);
+    static int addGsymbol(char* s, TokenType type, TokenType sType);
 
 
     
 };
 
+class Types {
+    public:
+    static bool compatible(TokenType &left, TokenType &right, bool o);
+};
 
 class Asm {
     private:
@@ -212,7 +216,7 @@ class Asm {
     static int multiply(int r1, int r2);
     static int divide(int r1, int r2);
 
-    static void globalSymbol(char* s);
+    static void globalSymbol(int id);
     static int loadGlobalSymbol(char* s);
     static int storeGlobalSymbol(int r, char* s);
 
@@ -230,7 +234,7 @@ class Asm {
 
     static void jump(int r);
     static void label(int r);
-
+    static int widen(int r);
     static int compareAndJump(TokenType instruction, int r1, int r2, int label);
     static int compareAndSet(TokenType instruction, int r1, int r2);
 };
