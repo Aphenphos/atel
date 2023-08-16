@@ -55,7 +55,7 @@ void run() {
     
     Parse::initParser(tokensPointer);
 
-    Asm::init((char *)"test.nasm");
+    Asm::init((char *)"test.asm");
     Asm::preamble();
     Expression* tree;
     while (1) {
