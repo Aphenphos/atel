@@ -58,10 +58,11 @@ Expression* Statement::printStatement(void) {
 
     leftType = INT;
     rightType = tree->type;
-    if (!Types::compatible(leftType, &rightType, false)) handleFatalError(cp"Type Error");
+    if (!Types::compatible(leftType, rightType, false)) handleFatalError(cp"Type Error");
 
-    if (rightType != EMPTY)
-        tree = Expression::castUnary(rightType, INT, tree, 0);
+    if (rightType != EMPTY) {
+        tree = Expression::castUnary(rightType, INT, tree, 0); 
+    }
     
     tree = Expression::castUnary(PRINT, EMPTY, tree, 0);
 
