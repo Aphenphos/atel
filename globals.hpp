@@ -7,4 +7,3 @@
 
 
 extern Token currentToken;
-extern FILE *srcFile;

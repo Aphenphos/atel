@@ -25,6 +25,10 @@ Expression* Expression::castPrimary(void) {
                 node = castLeaf(INTLIT, INT, currentToken.literal.intLiteral);
             break;
         case IDENT:
+
+            if (Parse::peek().tokenType == LEFT_PAREN) {
+                return Statement::callFunction();
+            }
             id = Symbols::findGlobalSymbol(currentToken.literal.string);
             if (id == -1) {
                 handleUnknownVar();

@@ -26,6 +26,10 @@ Expression* Statement::assignmentStatement(void) {
 
     checkCurToken(IDENT);
 
+    if (currentToken.tokenType == LEFT_PAREN) {
+        return callFunction();
+    }
+
     if ((id = Symbols::findGlobalSymbol(Parse::prev().literal.string)) == -1) {
         printf("Symbol not found : ");
         handleSyntaxError();
@@ -222,19 +226,8 @@ Expression* Statement::forStatement(void) {
 
 
 Expression* Statement::funcDeclaration(void) {
-    Expression* tree;
-    int nameSlot;
 
-    checkCurToken(VOID);
-    checkCurToken(IDENT);
-
-    nameSlot = Symbols::addGsymbol((char*)Parse::prev().literal.string, VOID, FUNCTION);
-    checkCurToken(LEFT_PAREN);
-    checkCurToken(RIGHT_PAREN);
-
-    tree = Statement::compoundStatement();
-
-    return Expression::castUnary(FUNCTION, VOID, tree,  nameSlot);
+    
 }
 
 Expression* Statement::callFunction(void) {
@@ -244,7 +237,7 @@ Expression* Statement::callFunction(void) {
     if ((id = Symbols::findGlobalSymbol(currentToken.literal.string)) == -1) {
         handleFatalError(cp"Undeclared Function");
     }
-
+    Parse::nextToken();
     checkCurToken(LEFT_PAREN);
 
     tree = Expression::binaryExpression(0);

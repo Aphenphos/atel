@@ -102,6 +102,7 @@ class Scan {
     static void handleIdentifier(void);
 
     public:
+    static FILE* srcFile;
     static char currentChar;
     static char prevChar;
     static char currentLiteral[512];
@@ -161,9 +162,9 @@ class Parse {
     static vector<Token> tokens;
     static int labelCount;
 
-    static int label();
 
     public:
+    static int label();
     static int current;
     static void initParser(vector<Token>* tokens);
     static void nextToken(void);

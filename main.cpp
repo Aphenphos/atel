@@ -10,15 +10,10 @@
 #include "globals.hpp"
 
 using namespace std;
-char currentChar;
-char prevChar;
-int currentLine;
+FILE *Scan::srcFile;
+
 Token currentToken;
-char currentLiteral[512];
-FILE *srcFile;
 
-
-void init();
 void run();
 
 
@@ -29,22 +24,19 @@ int main(int arc, char *argv[]) {
         handleFatalError(err);
     }
 
-    srcFile = fopen(argv[1], "r");
-    if (srcFile == NULL) {
+    Scan::srcFile = fopen(argv[1], "r");
+    if (Scan::srcFile == NULL) {
         char err[] = "Could not open sourcefile";
         handleFatalError(err);
     }
 
-    init();
     run();
     exit(0);
 }
 
-void init() {
-    currentLine = 1;
-}
 
 void run() {
+    Scan::currentLine = 1;
     Scan::nextChar();
     vector<Token> tokenList = Scan::scanToken();
     Scan::printTokens();
