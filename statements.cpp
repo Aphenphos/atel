@@ -13,7 +13,7 @@ void Statement::varDeclaration(void) {
     Parse::nextToken();
     checkCurToken(IDENT);
 
-    id = Symbols::addGsymbol((char*)prevToken.literal.string, prevToken.tokenType, VAR);
+    id = Symbols::addGsymbol((char*)Parse::prev().literal.string, Parse::prev().tokenType, VAR);
     Asm::globalSymbol(id);
     
     checkCurToken(SEMICOLON);
@@ -26,7 +26,7 @@ Expression* Statement::assignmentStatement(void) {
 
     checkCurToken(IDENT);
 
-    if ((id = Symbols::findGlobalSymbol(prevToken.literal.string)) == -1) {
+    if ((id = Symbols::findGlobalSymbol(Parse::prev().literal.string)) == -1) {
         printf("Symbol not found : ");
         handleSyntaxError();
     }
@@ -228,11 +228,30 @@ Expression* Statement::funcDeclaration(void) {
     checkCurToken(VOID);
     checkCurToken(IDENT);
 
-    nameSlot = Symbols::addGsymbol((char*)prevToken.literal.string, VOID, FUNCTION);
+    nameSlot = Symbols::addGsymbol((char*)Parse::prev().literal.string, VOID, FUNCTION);
     checkCurToken(LEFT_PAREN);
     checkCurToken(RIGHT_PAREN);
 
     tree = Statement::compoundStatement();
 
     return Expression::castUnary(FUNCTION, VOID, tree,  nameSlot);
+}
+
+Expression* Statement::callFunction(void) {
+    Expression* tree;
+    int id;
+
+    if ((id = Symbols::findGlobalSymbol(currentToken.literal.string)) == -1) {
+        handleFatalError(cp"Undeclared Function");
+    }
+
+    checkCurToken(LEFT_PAREN);
+
+    tree = Expression::binaryExpression(0);
+
+    tree = Expression::castUnary(FUNCCALL, Symbols::symbolTable[id].type, tree, id);
+
+    checkCurToken(RIGHT_PAREN);
+
+    return tree;
 }

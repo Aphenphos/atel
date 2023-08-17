@@ -7,7 +7,6 @@
 
 void checkCurToken(TokenType type) {
     if (currentToken.tokenType == type) {
-        prevToken = currentToken;
         Parse::nextToken();
     } else {
 

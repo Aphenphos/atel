@@ -14,7 +14,6 @@ char currentChar;
 char prevChar;
 int currentLine;
 Token currentToken;
-Token prevToken;
 char currentLiteral[512];
 FILE *srcFile;
 
@@ -46,12 +45,11 @@ void init() {
 }
 
 void run() {
-    Scan scanner;
-    scanner.nextChar();
-    vector<Token> tokenList = scanner.scanToken();
-    scanner.printTokens();
+    Scan::nextChar();
+    vector<Token> tokenList = Scan::scanToken();
+    Scan::printTokens();
 
-    vector<Token>* tokensPointer = &scanner.tokens;
+    vector<Token>* tokensPointer = &Scan::tokens;
     
     Parse::initParser(tokensPointer);
 

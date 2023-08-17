@@ -85,8 +85,9 @@ Expression* Expression::init(void) {
 
 int Expression::getOpPrec(TokenType type) {
     int prec = opPrecValues.at(type);
+    int errorLine = Scan::currentLine;
     if (prec == 0) {
-        fprintf(stderr, "syntax error on line:%d token: %d", currentLine, type);
+        fprintf(stderr, "syntax error on line:%d token: %d", errorLine, type);
         exit(1);
     }
 

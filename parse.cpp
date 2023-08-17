@@ -37,6 +37,14 @@ Expression::Expression(Expression* pleft, Expression* pmid,  Expression* pright,
     value.intValue = pintValue;
 }
 
+Token Parse::prev(void) {
+    return tokens[current - 1];
+}
+
+Token Parse::peek(void) {
+    return tokens[current + 1];
+}
+
 int Parse::label(void) {
     return(labelCount++);
 }

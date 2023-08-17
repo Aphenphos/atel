@@ -9,8 +9,11 @@
 #include "globals.hpp"
 
 using namespace std;
-
-vector<Token> tokens;
+char Scan::currentChar;
+char Scan::prevChar;
+char Scan::currentLiteral[512];
+int Scan::currentLine;
+vector<Token> Scan::tokens;
 map<string, TokenType> reservedWords = 
 {
     {"true", TRUE},

@@ -21,7 +21,7 @@ enum TokenType {
     
     LVIDENT, IDENT, STRING, INTLIT,
 
-    CLASS, FUNCTION,
+    CLASS, FUNCTION, FUNCCALL,
 
     AND, ELSE, TRUE, FALSE,
     FOR, IF, OR, WHILE, RETURN,
@@ -50,7 +50,7 @@ const string TokenTypeArr[] = {
 
     "LVIDENT", "IDENT", "STRING", "INTLIT",
 
-    "CLASS", "FUNCTION",
+    "CLASS", "FUNCTION", "FUNCCALL",
 
     "AND", "ELSE", "TRUE", "FALSE",
     "FOR", "IF", "OR","WHILE", "RETURN",
@@ -94,18 +94,22 @@ struct Token {
 
 class Scan {
     private:
-    void addToken(TokenType tType, int iLiteral = 0, char* s = nullptr); 
-    bool skipChar(void);
-    bool match(char c);
-    void handleString(void);
-    void handleIntlit(void);
-    void handleIdentifier(void);
+    static void addToken(TokenType tType, int iLiteral = 0, char* s = nullptr); 
+    static bool skipChar(void);
+    static bool match(char c);
+    static void handleString(void);
+    static void handleIntlit(void);
+    static void handleIdentifier(void);
 
     public:
-    void printTokens(void);
-    vector<Token> tokens;
-    vector<Token> scanToken(void);
-    void nextChar(void);
+    static char currentChar;
+    static char prevChar;
+    static char currentLiteral[512];
+    static int currentLine;
+    static void printTokens(void);
+    static vector<Token> tokens;
+    static vector<Token> scanToken(void);
+    static void nextChar(void);
 
 };
 
@@ -144,11 +148,12 @@ class Statement {
     static Expression* assignmentStatement(void);
     static void varDeclaration(void);
     static Expression* funcDeclaration(void);
-    static Expression*  compoundStatement(void);
+    static Expression* compoundStatement(void);
     static Expression* singleStatement(void);
     static Expression* ifStatement(void);
     static Expression* whileStatement(void);
     static Expression* forStatement(void);
+    static Expression* callFunction(void);
 };
 
 class Parse {
@@ -162,6 +167,8 @@ class Parse {
     static int current;
     static void initParser(vector<Token>* tokens);
     static void nextToken(void);
+    static Token prev(void);
+    static Token peek(void);
     static void parse(void);
     static int genAST(Expression* tree, int r, TokenType parent);
     static int ifAST(Expression* n);

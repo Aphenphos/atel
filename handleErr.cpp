@@ -15,8 +15,8 @@ using namespace std;
 vector<string> errors;
 
 void handleScanningError(void) { 
-    char currentErrChar = currentChar;
-    int currentErrLine = currentLine;
+    char currentErrChar = Scan::currentChar;
+    int currentErrLine = Scan::currentLine;
 
     errors.push_back("Line: " + to_string(currentErrLine) + " Char: " + "'" + string(1,currentErrChar) + "'");
 }
@@ -48,6 +48,6 @@ void printErrors(void) {
 }
 
 void handleUnknownVar(void) {
-    printf("Unknown variable:%s", currentLiteral);
+    printf("Unknown variable:%s", Scan::currentLiteral);
     exit(1);
 }
