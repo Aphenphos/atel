@@ -8,7 +8,7 @@
 using namespace std;
 
 enum TokenType {
-    LEFT_PAREN=1, RIGHT_PAREN, LEFT_CURL, RIGHT_CURL,
+    EMPTY, LEFT_PAREN=1, RIGHT_PAREN, LEFT_CURL, RIGHT_CURL,
     LEFT_BRACE, RIGHT_BRACE, COMMA, DOT, MINUS, PLUS, 
     SEMICOLON, SLASH, STAR,
 
@@ -17,7 +17,7 @@ enum TokenType {
     GREAT, GREAT_EQ,
     LESS, LESS_EQ,
 
-    INT, VOID, CHAR,
+    INT, LONG,  VOID, CHAR,
     
     LVIDENT, IDENT, STRING, INTLIT,
 
@@ -30,14 +30,14 @@ enum TokenType {
 
     PRINT,
     
-    HOLDER, EMPTY, WIDEN,
+    HOLDER, WIDEN,
 
 
     END
 };
 
 const string TokenTypeArr[] = {
-    "LEFT_PAREN","RIGHT_PAREN", "LEFT_CURL", "RIGHT_CURL",
+    "EMPTY","LEFT_PAREN","RIGHT_PAREN", "LEFT_CURL", "RIGHT_CURL",
     "LEFT_BRACE", "RIGHT_BRACE", "COMMA", "DOT", "MINUS", "PLUS", 
     "SEMICOLON", "SLASH", "STAR",
 
@@ -46,7 +46,7 @@ const string TokenTypeArr[] = {
     "GREAT", "GREAT_EQ",
     "LESS","LESS_EQ",
 
-    "INT", "VOID", "CHAR",
+    "INT", "LONG", "VOID", "CHAR",
 
     "LVIDENT", "IDENT", "STRING", "INTLIT",
 
@@ -59,7 +59,7 @@ const string TokenTypeArr[] = {
 
     "PRINT",
     
-    "HOLDER", "EMPTY", "WIDEN",
+    "HOLDER", "WIDEN",
 
 
     "END"
@@ -79,7 +79,7 @@ struct Token {
     } literal;
 
     void print(void) {
-        cout << "Token Type: " + TokenTypeArr[tokenType - 1] << endl;
+        cout << "Token Type: " + TokenTypeArr[tokenType] << endl;
         if (literal.string != nullptr) {
             printf("stringLit: ");
             cout << literal.string << endl;
@@ -94,6 +94,7 @@ struct Token {
 
 class Scan {
     private:
+    const static map<string, TokenType> reservedWords;
     static void addToken(TokenType tType, int iLiteral = 0, char* s = nullptr); 
     static bool skipChar(void);
     static bool match(char c);
@@ -144,6 +145,7 @@ class Expression {
 
 class Statement {
     public:
+    static int currentFuncID;
     static void statements(void);
     static Expression* printStatement(void);
     static Expression* assignmentStatement(void);
@@ -155,6 +157,7 @@ class Statement {
     static Expression* whileStatement(void);
     static Expression* forStatement(void);
     static Expression* callFunction(void);
+    static Expression* returnStatement(void);
 };
 
 class Parse {
@@ -182,20 +185,23 @@ class Symbols {
         char* name;
         TokenType type;
         TokenType sType;
+        int end;
     };
     static int globalSymbolsCount;
     static Symbol symbolTable[1024];
     static int findGlobalSymbol(char* s);
     static int newGlobalSymbol(void);
-    static int addGsymbol(char* s, TokenType type, TokenType sType);
+    static int addGsymbol(char* s, TokenType type, TokenType sType, int end);
 
 
     
 };
 
 class Types {
+    const static map<TokenType, int> size;
     public:
     static bool compatible(TokenType &left, TokenType &right, bool o);
+    static int getSize(TokenType type);
 };
 
 class Asm {
@@ -205,6 +211,7 @@ class Asm {
     static int freeRegisters[4];
     const static char* registerList[4];
     const static char* bRegisterList[4];
+    const static char* dRegisterList[4];
     const static char* compareList[6];
     const static char* jumpList[6];
 
@@ -225,8 +232,8 @@ class Asm {
     static int divide(int r1, int r2);
 
     static void globalSymbol(int id);
-    static int loadGlobalSymbol(char* s);
-    static int storeGlobalSymbol(int r, char* s);
+    static int loadGlobalSymbol(int id);
+    static int storeGlobalSymbol(int r, int id);
 
     static int eq(int r1, int r2);
     static int bangEq(int r1, int r2);
@@ -238,7 +245,10 @@ class Asm {
     static void printInt(int r);
 
     static void funcPreamble(char* s);
-    static void funcPostamble(void);
+    static void funcPostamble(int id);
+
+    static void ret(int r, int id);
+    static int call(int r, int id);
 
     static void jump(int r);
     static void label(int r);

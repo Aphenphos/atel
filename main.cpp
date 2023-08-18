@@ -39,7 +39,7 @@ void run() {
     Scan::currentLine = 1;
     Scan::nextChar();
     vector<Token> tokenList = Scan::scanToken();
-    Scan::printTokens();
+    // Scan::printTokens();
 
     vector<Token>* tokensPointer = &Scan::tokens;
     

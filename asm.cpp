@@ -9,6 +9,8 @@ FILE* Asm::outfile;
 int Asm::freeRegisters[4];
 const char* Asm::registerList[4] = { "r8" , "r9" , "r10" , "r11" };
 const char* Asm::bRegisterList[4] ={ "r8b", "r9b", "r10b", "r11b" }; 
+const char* Asm::dRegisterList[4] = { "r8d", "r9d", "r10d", "r11d" };
+
 
 void Asm::init(char* filename) {
 
@@ -125,24 +127,50 @@ void Asm::printInt(int r) {
     freeRegister(r);
 }
 
-int Asm::loadGlobalSymbol(char* s) {
+int Asm::loadGlobalSymbol(int id) {
+    printf("loading global symbol\n");
     int r = allocateRegister();
-    printf("Loading symbol: %s in register: %i\n", s, r);
 
-    fprintf(outfile, "\tmov\t%s, [%s]\n", registerList[r], s);
+    switch(Symbols::symbolTable[id].type) {
+        case CHAR:
+            fprintf(outfile, "\tmovzx\t%s, byte [%s]\n", registerList[r], Symbols::symbolTable[id].name);
+            break;
+        case INT:
+            fprintf(outfile, "\txor\t%s, %s\n", registerList[r], registerList[r]);
+            fprintf(outfile, "\tmov\t%s, dword [%s]\n", dRegisterList[r], Symbols::symbolTable[id].name);
+            break;
+        case LONG:
+            fprintf(outfile, "\tmov\t%s, [%s]\n", registerList[id], Symbols::symbolTable[id].name);
+            break;
+        default: 
+            printf("Bad type while loading symbol %i", Symbols::symbolTable[id].type);
+            exit(1);
+    }
     return r;
 }
 
-int Asm::storeGlobalSymbol(int r, char* s) {
-    printf("storing global symbol: %s in reg:%i\n", s, r);
-    
-    fprintf(outfile, "\tmov\t[%s], %s\n", s, registerList[r]);
+int Asm::storeGlobalSymbol(int r, int id) {
+    printf("Storing global symbol\n");
+    switch (Symbols::symbolTable[id].type) {
+        case CHAR:
+            fprintf(outfile, "\tmov\t[%s], %s\n", Symbols::symbolTable[id].name, bRegisterList[r]);
+            break;
+        case INT:
+            fprintf(outfile, "\tmov\t[%s], %s\n", Symbols::symbolTable[id].name, dRegisterList[r]);
+            break;
+        case LONG:
+            fprintf(outfile, "\tmov\t[%s], %s\n", Symbols::symbolTable[id].name, registerList[r]);
+            break;
+        default:
+            printf("Bad type storing global symbol %i", Symbols::symbolTable[id].type);
+            exit(1);
+    }
     return r;
 }
 
 void Asm::globalSymbol(int id) {
-    printf("creating global symbol:%s\n", Symbols::symbolTable[id].name);
-    
+    int size = Types::getSize(Symbols::symbolTable[id].type);
+    fprintf(outfile, "\tcommon\t%s %d:%d\n", Symbols::symbolTable[id].name, size, size);
 }
 
 int Asm::compare(int r1, int r2, char* instruction) {
@@ -184,10 +212,12 @@ const char* Asm::compareList[6] = { "sete", "setne", "setl", "setle", "setg", "s
 const char* Asm::jumpList[6] = { "je", "jne", "jl", "jle", "jg", "jge"};
 
 void Asm::jump(int l) {
+    printf("jumping\n");
     fprintf(outfile, "\tjmp\tL%d\n", l);
 }
 
 void Asm::label(int l) {
+    printf("Labeling\n");
     fprintf(outfile, "L%d:\n", l);
 }
 
@@ -261,6 +291,7 @@ int Asm::compareAndJump(TokenType instruction, int r1, int r2, int label) {
 }
 
 void Asm::funcPreamble(char* s) {
+    printf("func preamble");
       fprintf(outfile,
 	  "\tsection\t.text\n"
 	  "\tglobal\t%s\n"
@@ -268,10 +299,42 @@ void Asm::funcPreamble(char* s) {
 	  "\tmov\trbp, rsp\n", s, s);
 }
 
-void Asm::funcPostamble(void) {
+void Asm::funcPostamble(int id) {
+    printf("funcPostamble\n");
+    label(Symbols::symbolTable[id].end);
     fputs("\tmov	eax, 0\n" "\tpop	rbp\n" "\tret\n", outfile);
 }
 
 int Asm::widen(int r) {
     return r;
+}
+
+void Asm::ret(int r, int id) {
+    printf("returning\n");
+    switch(Symbols::symbolTable[id].type) {
+        case CHAR:
+            fprintf(outfile, "\tmovzx\teax, %s\n", bRegisterList[r]);
+            break;
+        case INT:
+            printf("%s", dRegisterList[r]);
+            fprintf(outfile, "\tmovzx\teax, %s\n", dRegisterList[r]);
+            break;
+        case LONG:
+            fprintf(outfile, "\tmov\trax. %s\n", registerList[r]);
+            break;
+        default: 
+            printf("Bad Type when generating asm %i", Symbols::symbolTable[id].type );
+            exit(1);
+    }
+    jump(Symbols::symbolTable[id].end);
+}
+
+int Asm::call(int r, int id) {
+    printf("calling func\n");
+    int out = allocateRegister();
+    fprintf(outfile, "\tmov\trdi, %s\n", registerList[r]);
+    fprintf(outfile, "\tcall\t%s\n", Symbols::symbolTable[id].name);
+    fprintf(outfile, "\tmov\t%s, rax\n", registerList[out]);
+    freeRegister(r);
+    return out;
 }

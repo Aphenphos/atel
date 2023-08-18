@@ -14,7 +14,7 @@ char Scan::prevChar;
 char Scan::currentLiteral[512];
 int Scan::currentLine;
 vector<Token> Scan::tokens;
-map<string, TokenType> reservedWords = 
+const map<string, TokenType> Scan::reservedWords = 
 {
     {"true", TRUE},
     {"false", FALSE},
@@ -28,7 +28,8 @@ map<string, TokenType> reservedWords =
     {"print", PRINT},
     {"for", FOR},
     {"void", VOID},
-    {"char", CHAR}
+    {"char", CHAR},
+    {"long", LONG}
 };
 
 bool Scan::skipChar() {

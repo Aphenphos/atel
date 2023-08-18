@@ -12,7 +12,6 @@ Symbols::Symbol Symbols::symbolTable[1024];
 
 int Symbols::findGlobalSymbol(char* s) {
     int i;
-
     for (i = 0; i < globalSymbolsCount; i++) {
         if (*s == *symbolTable[i].name && !strcmp(s, symbolTable[i].name)) {
             return i;
@@ -21,7 +20,7 @@ int Symbols::findGlobalSymbol(char* s) {
     return -1;
 }
 
-int Symbols::addGsymbol(char* s, TokenType type, TokenType sType) {
+int Symbols::addGsymbol(char* s, TokenType type, TokenType sType, int end) {
     int i;
 
     if ((i = findGlobalSymbol(s)) != -1) {
@@ -29,10 +28,11 @@ int Symbols::addGsymbol(char* s, TokenType type, TokenType sType) {
     }
 
     i = newGlobalSymbol();
+
     symbolTable[i].name = strdup(s);
     symbolTable[i].type = type;
     symbolTable[i].sType = sType;
-    
+    symbolTable[i].end = end;
     return i;
 }
 

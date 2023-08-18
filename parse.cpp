@@ -92,7 +92,7 @@ int Parse::genAST(Expression* n, int r, TokenType parent) {
         case FUNCTION:
             Asm::funcPreamble(Symbols::symbolTable[n->value.id].name);
             genAST(n->left, nr, n->op);
-            Asm::funcPostamble();
+            Asm::funcPostamble(n->value.id);
             return nr;
         case HOLDER:
             genAST(n->left , nr, n->op );
@@ -101,7 +101,6 @@ int Parse::genAST(Expression* n, int r, TokenType parent) {
             Asm::freeAllRegisters();
             return nr;
     }
-
     if (n->left) {
         leftRegister = Parse::genAST(n->left, -1, n->op);
     }
@@ -121,9 +120,9 @@ int Parse::genAST(Expression* n, int r, TokenType parent) {
         case INTLIT:
             return Asm::loadInt(n->value.intValue);
         case IDENT:
-            return Asm::loadGlobalSymbol(Symbols::symbolTable[n->value.id].name);
+            return Asm::loadGlobalSymbol(n->value.id);
         case LVIDENT:
-            return Asm::storeGlobalSymbol(r, Symbols::symbolTable[n->value.id].name);
+            return Asm::storeGlobalSymbol(r, n->value.id);
         case EQ_EQ:
         case BANG_EQ:
         case LESS:   
@@ -143,6 +142,11 @@ int Parse::genAST(Expression* n, int r, TokenType parent) {
             return nr;
         case WIDEN:
             return Asm::widen(leftRegister);
+        case RETURN:
+            Asm::ret(leftRegister, Statement::currentFuncID);
+            return nr;
+        case FUNCCALL:
+            return Asm::call(leftRegister, n->value.id); 
         default:
             fprintf(stderr, "Parsing error while interpreting %d\0\n", n->op);
             exit(1);

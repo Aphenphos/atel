@@ -6,15 +6,18 @@
 #include "globals.hpp"
 
 
+int Statement::currentFuncID;
 
 void Statement::varDeclaration(void) {
     int id;
+    TokenType type = currentToken.tokenType;
 
     Parse::nextToken();
     checkCurToken(IDENT);
-
-    id = Symbols::addGsymbol((char*)Parse::prev().literal.string, Parse::prev().tokenType, VAR);
+    
+    id = Symbols::addGsymbol((char*)Parse::prev().literal.string, type, VAR, 0);
     Asm::globalSymbol(id);
+
     
     checkCurToken(SEMICOLON);
 }
@@ -42,6 +45,7 @@ Expression* Statement::assignmentStatement(void) {
     left = Expression::binaryExpression(0);
 
     leftType = left->type; rightType = right->type;
+
     if (!Types::compatible(leftType,rightType, true)) handleFatalError(cp"Type Error");
 
     if (leftType != EMPTY) left = Expression::castUnary(leftType, right->type, left, 0);
@@ -79,6 +83,7 @@ Expression* Statement::singleStatement(void) {
             return printStatement();
         case CHAR:
         case INT:
+        case LONG:
             varDeclaration();
             return nullptr;
         case IDENT:
@@ -89,6 +94,8 @@ Expression* Statement::singleStatement(void) {
             return ifStatement();
         case FOR:
             return forStatement();
+        case RETURN:
+            return returnStatement();
         default:
             handleSyntaxError();
             exit(1);
@@ -226,18 +233,45 @@ Expression* Statement::forStatement(void) {
 
 
 Expression* Statement::funcDeclaration(void) {
+    Expression* tree, *finalStatement;
+    TokenType type;
+    int nameSlot, endLabel;
 
+    type = currentToken.tokenType;
     
+    Parse::nextToken();
+
+    checkCurToken(IDENT);
+
+    endLabel = Parse::label();
+    nameSlot = Symbols::addGsymbol(Parse::prev().literal.string, type, FUNCTION, endLabel);
+
+    currentFuncID = nameSlot;
+
+    //Will change when adding func parameters;
+    checkCurToken(LEFT_PAREN);
+    checkCurToken(RIGHT_PAREN);
+
+    tree = compoundStatement();
+
+    if (type != VOID) {
+        finalStatement = (tree->op == HOLDER) ? tree->right : tree;
+        if (finalStatement == nullptr || finalStatement->op != RETURN) {
+            handleFatalError(cp"No return for non void function");
+        }
+    }
+
+    return Expression::castUnary(FUNCTION, type, tree, nameSlot);
 }
 
 Expression* Statement::callFunction(void) {
     Expression* tree;
     int id;
 
-    if ((id = Symbols::findGlobalSymbol(currentToken.literal.string)) == -1) {
+
+    if ((id = Symbols::findGlobalSymbol(Parse::prev().literal.string)) == -1) {
         handleFatalError(cp"Undeclared Function");
     }
-    Parse::nextToken();
     checkCurToken(LEFT_PAREN);
 
     tree = Expression::binaryExpression(0);
@@ -246,5 +280,35 @@ Expression* Statement::callFunction(void) {
 
     checkCurToken(RIGHT_PAREN);
 
+    return tree;
+}
+
+Expression* Statement::returnStatement(void) {
+    Expression* tree;
+    TokenType returnType, funcType;
+
+    if (Symbols::symbolTable[currentFuncID].type == VOID) {
+        printf("Cant return from void func");
+        exit(1);
+    }
+
+    checkCurToken(RETURN);
+    checkCurToken(LEFT_PAREN);
+
+    tree = Expression::binaryExpression(0);
+
+    returnType = tree->type;
+    funcType = Symbols::symbolTable[currentFuncID].type;
+    if (!Types::compatible(returnType, funcType, true)) {
+        handleFatalError(cp"Incompatible types");
+    }
+
+    if (returnType) {
+        tree = Expression::castUnary(returnType, funcType, tree, 0);
+    }
+
+    tree = Expression::castUnary(RETURN, EMPTY, tree, 0);
+
+    checkCurToken(RIGHT_PAREN);
     return tree;
 }

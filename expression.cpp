@@ -27,6 +27,7 @@ Expression* Expression::castPrimary(void) {
         case IDENT:
 
             if (Parse::peek().tokenType == LEFT_PAREN) {
+                Parse::nextToken();
                 return Statement::callFunction();
             }
             id = Symbols::findGlobalSymbol(currentToken.literal.string);

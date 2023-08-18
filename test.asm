@@ -17,52 +17,15 @@ printint:
 	ret
 
 	section	.text
-	global	main
-main:
+	global	fred
+fred:
 	push	rbp
 	mov	rbp, rsp
 	mov	r8, 20
-	mov	[j], r8
-	mov	r8, [j]
-	mov	rdi, r8
-	call	printint
-	mov	r8, 10
-	mov	[i], r8
-	mov	r8, [i]
-	mov	rdi, r8
-	call	printint
-	mov	r8, 1
-	mov	[i], r8
-L1:
-	mov	r8, [i]
-	mov	r9, 5
-	cmp	r8, r9
-	jg	L2
-	mov	r8, [i]
-	mov	rdi, r8
-	call	printint
-	mov	r8, [i]
-	mov	r9, 1
-	add	r9, r8
-	mov	[i], r9
+	movzx	eax, r8d
 	jmp	L1
-L2:
-	mov	r8, 253
-	mov	[j], r8
-L3:
-	mov	r8, [j]
-	mov	r9, 2
-	cmp	r8, r9
-	je	L4
-	mov	r8, [j]
-	mov	rdi, r8
-	call	printint
-	mov	r8, [j]
-	mov	r9, 1
-	add	r9, r8
-	mov	[j], r9
-	jmp	L3
-L4:
+L1:
 	mov	eax, 0
 	pop	rbp
 	ret
+	common	result 4:4
