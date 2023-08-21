@@ -147,6 +147,10 @@ int Parse::genAST(Expression* n, int r, TokenType parent) {
             return nr;
         case FUNCCALL:
             return Asm::call(leftRegister, n->value.id); 
+        case ADDRESS:
+            return Asm::address(n->value.id);
+        case DEREF: 
+            return Asm::deref(leftRegister, n->left->type);
         default:
             fprintf(stderr, "Parsing error while interpreting %d\0\n", n->op);
             exit(1);

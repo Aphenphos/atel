@@ -48,7 +48,7 @@ Expression* Expression::binaryExpression(int prevTokenPrec) {
     Expression* left, *right;
     TokenType type, leftType, rightType;
 
-    left = castPrimary();
+    left = prefix();
     type = currentToken.tokenType;
 
     if (type == SEMICOLON || type == RIGHT_PAREN) {
@@ -97,4 +97,36 @@ int Expression::getOpPrec(TokenType type) {
     }
 
     return prec;
+}
+
+Expression* Expression::prefix(void) {
+    Expression* tree;
+    switch(currentToken.tokenType) {
+        case REF: {
+            Parse::nextToken();
+            tree = prefix();
+
+            if (tree->op != IDENT) {
+                handleFatalError(cp"& must be followed by an ident");
+            }
+
+            tree->op = ADDRESS;
+            tree->type = Types::pointer();
+            break;
+        }
+        case STAR: {
+            Parse::nextToken();
+            tree = prefix();
+
+            if (tree->op != IDENT && tree->op != DEREF) {
+                handleFatalError(cp"* must be followed by an ident");
+            }
+
+            tree = castUnary(DEREF, Types::pointerValue(), tree, 0);
+            break;
+        }
+        default:
+            tree = castPrimary();
+    }
+    return tree;
 }

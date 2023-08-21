@@ -10,17 +10,18 @@ using namespace std;
 enum TokenType {
     EMPTY, LEFT_PAREN=1, RIGHT_PAREN, LEFT_CURL, RIGHT_CURL,
     LEFT_BRACE, RIGHT_BRACE, COMMA, DOT, MINUS, PLUS, 
-    SEMICOLON, SLASH, STAR,
+    SEMICOLON, SLASH, STAR, REF,
 
     BANG, BANG_EQ,
     EQ, EQ_EQ,
     GREAT, GREAT_EQ,
     LESS, LESS_EQ,
 
-    INT, LONG,  VOID, CHAR,
-    REF,
+    INT, LONG, VOID, CHAR, STRING,
+    INTPTR, LONGPTR, CHARPTR, VOIDPTR, STRINGPTR,
+    ADDRESS, DEREF,
     
-    LVIDENT, IDENT, STRING, INTLIT,
+    LVIDENT, IDENT, INTLIT,
 
     CLASS, FUNCTION, FUNCCALL,
 
@@ -40,16 +41,18 @@ enum TokenType {
 const string TokenTypeArr[] = {
     "EMPTY","LEFT_PAREN","RIGHT_PAREN", "LEFT_CURL", "RIGHT_CURL",
     "LEFT_BRACE", "RIGHT_BRACE", "COMMA", "DOT", "MINUS", "PLUS", 
-    "SEMICOLON", "SLASH", "STAR",
+    "SEMICOLON", "SLASH", "STAR", "REF",
 
     "BANG", "BANG_EQ",
     "EQ", "EQ_EQ",
     "GREAT", "GREAT_EQ",
     "LESS","LESS_EQ",
 
-    "INT", "LONG", "VOID", "CHAR",
+    "INT", "LONG", "VOID", "CHAR", "STRING",
+    "INTPTR", "LONGPTR", "CHARPTR", "VOIDPTR", "STRINGPTR",
+    "ADDRESS", "DEREF"
 
-    "LVIDENT", "IDENT", "STRING", "INTLIT",
+    "LVIDENT", "IDENT",  "INTLIT",
 
     "CLASS", "FUNCTION", "FUNCCALL",
 
@@ -141,6 +144,7 @@ class Expression {
     static Expression* binaryExpression(int prevTokenPrec);
     static Expression* castLeaf(TokenType op, TokenType type, int intValue);
     static Expression* castUnary(TokenType op, TokenType type, Expression* left, int intValue);
+    static Expression* prefix(void);
     static int getOpPrec(TokenType type);
 };
 
@@ -203,6 +207,9 @@ class Types {
     public:
     static bool compatible(TokenType &left, TokenType &right, bool o);
     static int getSize(TokenType type);
+    static TokenType pointer(void);
+    static TokenType pointerValue(void);
+    static TokenType determine(void);
 };
 
 class Asm {
@@ -256,4 +263,7 @@ class Asm {
     static int widen(int r);
     static int compareAndJump(TokenType instruction, int r1, int r2, int label);
     static int compareAndSet(TokenType instruction, int r1, int r2);
+
+    static int address(int id);
+    static int deref(int id, TokenType type);
 };

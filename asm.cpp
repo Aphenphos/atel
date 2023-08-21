@@ -169,6 +169,7 @@ int Asm::storeGlobalSymbol(int r, int id) {
 }
 
 void Asm::globalSymbol(int id) {
+    cout << Symbols::symbolTable[id].type << endl;
     int size = Types::getSize(Symbols::symbolTable[id].type);
     fprintf(outfile, "\tcommon\t%s %d:%d\n", Symbols::symbolTable[id].name, size, size);
 }
@@ -337,4 +338,28 @@ int Asm::call(int r, int id) {
     fprintf(outfile, "\tmov\t%s, rax\n", registerList[out]);
     freeRegister(r);
     return out;
+}
+
+int Asm::address(int id) {
+    int r = allocateRegister();
+    fprintf(outfile, "\tmov\t%s, %s\n", registerList[r], Symbols::symbolTable[id].name);
+    printf("loading adress of var :%s\n", Symbols::symbolTable[id].name);
+    return r;
+}
+
+int Asm::deref(int r, TokenType type) {
+    printf("Dereferencing\n");
+    switch (type) {
+        case CHARPTR:
+            fprintf(outfile, "\tmovzx\t%s, byte [%s]\n", registerList[r], registerList[r]);
+            break;
+        case INTPTR:
+            fprintf(outfile, "\tmovzx\t%s, word [%s]\n", registerList[r], registerList[r]);
+            break;
+        case LONGPTR:
+            fprintf(outfile, "\tmov\t%s, [%s]\n", registerList[r], registerList[r]);
+            break;
+    }
+
+    return r;
 }
