@@ -8,5 +8,4 @@ void main() {
   result= fred(15);
   print result;
   print fred(15)+10;
-  return(0)
 }

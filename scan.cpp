@@ -94,11 +94,8 @@ vector<Token> Scan::scanToken(void) {
                 }
             }
             case '&': {
-                if (match('&')) {
-                    addToken(AND); break;
-                }
-                handleScanningError();
-                break;
+                 addToken(match('&') ? AND : REF); 
+                 break;
             }
             case '!': {
                     addToken(match('=') ? BANG_EQ : BANG);

@@ -18,6 +18,7 @@ enum TokenType {
     LESS, LESS_EQ,
 
     INT, LONG,  VOID, CHAR,
+    REF,
     
     LVIDENT, IDENT, STRING, INTLIT,
 

@@ -291,7 +291,7 @@ int Asm::compareAndJump(TokenType instruction, int r1, int r2, int label) {
 }
 
 void Asm::funcPreamble(char* s) {
-    printf("func preamble");
+    printf("func preamble\n");
       fprintf(outfile,
 	  "\tsection\t.text\n"
 	  "\tglobal\t%s\n"
