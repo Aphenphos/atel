@@ -207,8 +207,8 @@ class Types {
     public:
     static bool compatible(TokenType &left, TokenType &right, bool o);
     static int getSize(TokenType type);
-    static TokenType pointer(void);
-    static TokenType pointerValue(void);
+    static TokenType pointer(TokenType t);
+    static TokenType pointerValue(TokenType t);
     static TokenType determine(void);
 };
 

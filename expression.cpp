@@ -5,6 +5,14 @@
 #include "defs.hpp"
 #include "globals.hpp"
 
+Expression::Expression(Expression* pleft, Expression* pmid,  Expression* pright, TokenType pop, TokenType ptype, int pintValue) {
+    left = pleft;
+    middle = pmid;
+    right = pright;
+    op = pop;
+    type = ptype;
+    value.intValue = pintValue;
+}
 
 Expression* Expression::castLeaf(TokenType op, TokenType type, int intValue) {
     return(new Expression(nullptr, nullptr, nullptr, op, type, intValue));
@@ -68,7 +76,7 @@ Expression* Expression::binaryExpression(int prevTokenPrec) {
         }
 
         if (rightType != EMPTY) {
-            right = castUnary(leftType, left->type, right, 0);
+            right = castUnary(rightType, left->type, right, 0);
         }
 
         left = new Expression(left, nullptr, right, type, left->type, 0);
@@ -111,7 +119,7 @@ Expression* Expression::prefix(void) {
             }
 
             tree->op = ADDRESS;
-            tree->type = Types::pointer();
+            tree->type = Types::pointer(tree->type);
             break;
         }
         case STAR: {
@@ -122,7 +130,7 @@ Expression* Expression::prefix(void) {
                 handleFatalError(cp"* must be followed by an ident");
             }
 
-            tree = castUnary(DEREF, Types::pointerValue(), tree, 0);
+            tree = castUnary(DEREF, Types::pointerValue(tree->type), tree, 0);
             break;
         }
         default:

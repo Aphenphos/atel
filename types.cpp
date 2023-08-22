@@ -16,7 +16,7 @@ const map<TokenType, int> Types::size = {
     {INTPTR, 8},
     {CHARPTR, 8}
 };
-//THIS IS THE ERROR, PASSING BY REFERENCE IS NOT CHANGING THE VALUES
+
 bool Types::compatible(TokenType &left, TokenType &right, bool o) {
     int leftSize, rightSize;
     if (left == right) { left = right = EMPTY; return true; }
@@ -41,25 +41,23 @@ int Types::getSize(TokenType type) {
     return (size.at(type));
 }
 
-TokenType Types::pointer(void) {
+TokenType Types::pointer(TokenType type) {
     TokenType t;
-    cout << currentToken.tokenType << endl;
-    cout << Parse::prev().tokenType << endl;
-    switch (currentToken.tokenType) {
+
+    switch (type) {
         case VOID: t=VOIDPTR; break;
         case CHAR: t=CHARPTR; break;
         case INT: t=INTPTR; break;
         case LONG: t=LONGPTR; break;
         default:handleFatalError(cp"Unrecognized ptrType\n");
     }
-    cout << "in ptr function" << t << endl;
     return t;
 }
 
-TokenType Types::pointerValue(void) {
+TokenType Types::pointerValue(TokenType type) {
     TokenType t;
 
-    switch (currentToken.tokenType) {
+    switch (type) {
         case VOIDPTR: t=VOID; break;
         case CHARPTR: t=CHAR; break;
         case INTPTR: t=INT; break;
@@ -77,7 +75,7 @@ TokenType Types::determine(void) {
         t = Parse::prev().tokenType;
         return t;
     };
-    t = pointer();
+    t = pointer(Parse::prev().tokenType);
     Parse::nextToken();
     return t;
 }

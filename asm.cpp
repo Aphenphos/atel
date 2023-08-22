@@ -140,6 +140,9 @@ int Asm::loadGlobalSymbol(int id) {
             fprintf(outfile, "\tmov\t%s, dword [%s]\n", dRegisterList[r], Symbols::symbolTable[id].name);
             break;
         case LONG:
+        case LONGPTR:
+        case CHARPTR:
+        case INTPTR:
             fprintf(outfile, "\tmov\t%s, [%s]\n", registerList[id], Symbols::symbolTable[id].name);
             break;
         default: 
@@ -159,6 +162,9 @@ int Asm::storeGlobalSymbol(int r, int id) {
             fprintf(outfile, "\tmov\t[%s], %s\n", Symbols::symbolTable[id].name, dRegisterList[r]);
             break;
         case LONG:
+        case LONGPTR:
+        case CHARPTR:
+        case INTPTR:
             fprintf(outfile, "\tmov\t[%s], %s\n", Symbols::symbolTable[id].name, registerList[r]);
             break;
         default:
@@ -169,7 +175,6 @@ int Asm::storeGlobalSymbol(int r, int id) {
 }
 
 void Asm::globalSymbol(int id) {
-    cout << Symbols::symbolTable[id].type << endl;
     int size = Types::getSize(Symbols::symbolTable[id].type);
     fprintf(outfile, "\tcommon\t%s %d:%d\n", Symbols::symbolTable[id].name, size, size);
 }

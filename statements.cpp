@@ -12,7 +12,6 @@ void Statement::varDeclaration(void) {
     int id;
     TokenType type = Types::determine();
     checkCurToken(IDENT);
-    cout << "invar" << type << endl;
     id = Symbols::addGsymbol((char*)Parse::prev().literal.string, type, VAR, 0);
     Asm::globalSymbol(id);
 

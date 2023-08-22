@@ -3,5 +3,6 @@ int main() {
   int *iptr;
   x= 10; y= 20;
   iptr= &x + 1;
-  printint *iptr;
+  print *iptr;
+  return (0)
 }

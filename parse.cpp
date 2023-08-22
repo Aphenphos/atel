@@ -28,15 +28,6 @@ map<TokenType, int> Expression::opPrecValues =
     {GREAT_EQ, 40}
 };
 
-Expression::Expression(Expression* pleft, Expression* pmid,  Expression* pright, TokenType pop, TokenType ptype, int pintValue) {
-    left = pleft;
-    middle = pmid;
-    right = pright;
-    op = pop;
-    type = ptype;
-    value.intValue = pintValue;
-}
-
 Token Parse::prev(void) {
     return tokens[current - 1];
 }
@@ -83,7 +74,6 @@ int Parse::whileAST(Expression* n) {
 
 int Parse::genAST(Expression* n, int r, TokenType parent) {
     int leftRegister, rightRegister;
-
     switch(n->op) {
         case IF:
             return ifAST(n);
