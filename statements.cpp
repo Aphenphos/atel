@@ -8,15 +8,23 @@
 
 int Statement::currentFuncID;
 
-void Statement::varDeclaration(void) {
+void Statement::varDeclaration(TokenType type) {
     int id;
-    TokenType type = Types::determine();
-    checkCurToken(IDENT);
-    id = Symbols::addGsymbol((char*)Parse::prev().literal.string, type, VAR, 0);
-    Asm::globalSymbol(id);
+    while (1) {
+        id = Symbols::addGsymbol(Parse::prev().literal.string, type, VAR, 0);
+        Asm::globalSymbol(id);
+        if (currentToken.tokenType == SEMICOLON) {
+            Parse::nextToken();
+            return;
+        }
 
-    
-    checkCurToken(SEMICOLON);
+        if (currentToken.tokenType == COMMA) {
+            Parse::nextToken();
+            checkCurToken(IDENT);
+            continue;
+        }
+        handleFatalError(cp"Missing , or ;");
+    }
 }
 
 Expression* Statement::assignmentStatement(void) {
@@ -81,7 +89,11 @@ Expression* Statement::singleStatement(void) {
         case CHAR:
         case INT:
         case LONG:
-            varDeclaration();
+            TokenType type;
+            type = currentToken.tokenType;
+            Parse::nextToken();
+            Parse::nextToken();
+            varDeclaration(type);
             return nullptr;
         case IDENT:
             return assignmentStatement();
@@ -229,19 +241,11 @@ Expression* Statement::forStatement(void) {
 }
 
 
-Expression* Statement::funcDeclaration(void) {
+Expression* Statement::funcDeclaration(TokenType t) {
     Expression* tree, *finalStatement;
-    TokenType type;
     int nameSlot, endLabel;
-
-    type = currentToken.tokenType;
-    
-    Parse::nextToken();
-
-    checkCurToken(IDENT);
-
     endLabel = Parse::label();
-    nameSlot = Symbols::addGsymbol(Parse::prev().literal.string, type, FUNCTION, endLabel);
+    nameSlot = Symbols::addGsymbol(Parse::prev().literal.string, t, FUNCTION, endLabel);
 
     currentFuncID = nameSlot;
 
@@ -251,14 +255,14 @@ Expression* Statement::funcDeclaration(void) {
 
     tree = compoundStatement();
 
-    if (type != VOID) {
+    if (t != VOID) {
         finalStatement = (tree->op == HOLDER) ? tree->right : tree;
         if (finalStatement == nullptr || finalStatement->op != RETURN) {
             handleFatalError(cp"No return for non void function");
         }
     }
 
-    return Expression::castUnary(FUNCTION, type, tree, nameSlot);
+    return Expression::castUnary(FUNCTION, t, tree, nameSlot);
 }
 
 Expression* Statement::callFunction(void) {
@@ -308,4 +312,25 @@ Expression* Statement::returnStatement(void) {
 
     checkCurToken(RIGHT_PAREN);
     return tree;
+}
+
+void Statement::globalDeclarations(void) {
+    Expression* tree;
+    TokenType type;
+
+    while (1) {
+        type = Types::determine();
+        checkCurToken(IDENT);
+
+        if (currentToken.tokenType == LEFT_PAREN) {
+            tree = funcDeclaration(type);
+            Parse::genAST(tree, nr, TokenType(0));
+        } else {
+            varDeclaration(type);
+        }
+
+        if (currentToken.tokenType == END) {
+            break;
+        }
+    }
 }

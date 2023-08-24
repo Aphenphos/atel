@@ -70,12 +70,13 @@ TokenType Types::pointerValue(TokenType type) {
 
 TokenType Types::determine(void) {
     TokenType t;
-    Parse::nextToken();
-    if (currentToken.tokenType != STAR) {
-        t = Parse::prev().tokenType;
+    if (Parse::peek().tokenType == STAR) {
+        t = pointer(currentToken.tokenType);
+        Parse::nextToken();
+        Parse::nextToken();
         return t;
-    };
-    t = pointer(Parse::prev().tokenType);
+    }
+    t = currentToken.tokenType;
     Parse::nextToken();
     return t;
 }

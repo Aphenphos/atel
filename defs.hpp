@@ -151,11 +151,13 @@ class Expression {
 class Statement {
     public:
     static int currentFuncID;
+
     static void statements(void);
+    static void globalDeclarations(void);
     static Expression* printStatement(void);
     static Expression* assignmentStatement(void);
-    static void varDeclaration(void);
-    static Expression* funcDeclaration(void);
+    static void varDeclaration(TokenType type);
+    static Expression* funcDeclaration(TokenType type);
     static Expression* compoundStatement(void);
     static Expression* singleStatement(void);
     static Expression* ifStatement(void);
@@ -209,7 +211,7 @@ class Types {
     static int getSize(TokenType type);
     static TokenType pointer(TokenType t);
     static TokenType pointerValue(TokenType t);
-    static TokenType determine(void);
+    static TokenType determine();
 };
 
 class Asm {

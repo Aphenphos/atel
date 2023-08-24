@@ -47,13 +47,7 @@ void run() {
 
     Asm::init((char *)"test.asm");
     Asm::preamble();
-    Expression* tree;
-    while (1) {
-        tree = Statement::funcDeclaration();
-        Parse::genAST(tree, nr, TokenType(-1));
-        if (currentToken.tokenType == END) {
-            break;
-        }
-    }
+    Statement::globalDeclarations();
+    Asm::postamble();
     return;
 }
