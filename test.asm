@@ -16,41 +16,28 @@ printint:
 	leave
 	ret
 
-	common	d 4:4
-	common	f 4:4
-	common	e 8:8
-	common	a 4:4
-	common	b 4:4
 	common	c 4:4
+	common	d 4:4
+	common	e 8:8
+	common	f 4:4
 	section	.text
 	global	main
 main:
 	push	rbp
 	mov	rbp, rsp
-	mov	r8, 3
-	mov	[b], r8d
-	mov	r8, 5
-	mov	[c], r8d
-	xor	r8, r8
-	mov	r8d, dword [b]
-	xor	r9, r9
-	mov	r9d, dword [c]
-	mov	r10, 10
-	imul	r10, r9
-	add	r10, r8
-	mov	[a], r10d
-	xor	r8, r8
-	mov	r8d, dword [a]
-	mov	rdi, r8
-	call	printint
 	mov	r8, 12
+	mov	[c], r8d
+	mov	r8, 18
 	mov	[d], r8d
 	xor	r8, r8
-	mov	r8d, dword [d]
+	mov	r8d, dword [c]
 	mov	rdi, r8
 	call	printint
-	mov	r8, d
-	mov	[e], r8
+	mov	r8, c
+	mov	r9, 1
+	sal	r9, 3
+	add	r9, r8
+	mov	[e], r9
 	mov	r10, [e]
 	movzx	r8, word [r8]
 	mov	[f], r8d

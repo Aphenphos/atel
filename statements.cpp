@@ -29,7 +29,6 @@ void Statement::varDeclaration(TokenType type) {
 
 Expression* Statement::assignmentStatement(void) {
     Expression* left, *right, *tree;
-    TokenType leftType, rightType;
     int id;
 
     checkCurToken(IDENT);
@@ -49,36 +48,29 @@ Expression* Statement::assignmentStatement(void) {
 
     left = Expression::binaryExpression(0);
 
-    leftType = left->type; rightType = right->type;
+    left = Types::modifyType(left, right->type, EMPTY);
 
-    if (!Types::compatible(leftType,rightType, true)) handleFatalError(cp"Type Error");
+    if (left == nullptr) handleFatalError(cp"Type Error");
 
-    if (leftType != EMPTY) left = Expression::castUnary(leftType, right->type, left, 0);
-
-    tree = new Expression(left, nullptr, right, EQ , INT, 0);
+    tree = new Expression(left, nullptr, right, EQ, INT, 0);
 
     return tree;
 }
 
 Expression* Statement::printStatement(void) {
     Expression* tree;
-    TokenType leftType, rightType;
-    int r;
 
     checkCurToken(PRINT);
 
     tree = Expression::binaryExpression(0);
 
-    leftType = INT;
-    rightType = tree->type;
-    if (!Types::compatible(leftType, rightType, false)) handleFatalError(cp"Type Error");
-
-    if (rightType != EMPTY) {
-        tree = Expression::castUnary(rightType, INT, tree, 0); 
+    tree = Types::modifyType(tree, INT, EMPTY);
+    if (tree == nullptr) {
+        handleFatalError(cp"Cant print");
     }
-    
-    tree = Expression::castUnary(PRINT, EMPTY, tree, 0);
 
+
+    tree = Expression::castUnary(PRINT, EMPTY, tree, 0);
     return tree;
 }
 
@@ -298,14 +290,9 @@ Expression* Statement::returnStatement(void) {
 
     tree = Expression::binaryExpression(0);
 
-    returnType = tree->type;
-    funcType = Symbols::symbolTable[currentFuncID].type;
-    if (!Types::compatible(returnType, funcType, true)) {
-        handleFatalError(cp"Incompatible types");
-    }
-
-    if (returnType) {
-        tree = Expression::castUnary(returnType, funcType, tree, 0);
+    tree = Types::modifyType(tree, Symbols::symbolTable[currentFuncID].type, EMPTY);
+    if (tree == nullptr) {
+        handleFatalError(cp"Cant return");
     }
 
     tree = Expression::castUnary(RETURN, EMPTY, tree, 0);

@@ -368,3 +368,9 @@ int Asm::deref(int r, TokenType type) {
 
     return r;
 }
+
+int Asm::shiftLeft(int r, int pwr) {
+    printf("shifting left\n");
+    fprintf(outfile, "\tsal\t%s, %d\n", registerList[r], pwr);
+    return r;
+}

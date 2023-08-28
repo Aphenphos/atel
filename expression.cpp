@@ -53,10 +53,11 @@ Expression* Expression::castPrimary(void) {
 }
 
 Expression* Expression::binaryExpression(int prevTokenPrec) {
-    Expression* left, *right;
-    TokenType type, leftType, rightType;
+    Expression* left, *right, *lTemp, *rTemp;
+    TokenType type, leftType, rightType, astOp;
 
     left = prefix();
+    cout << left << endl;
     type = currentToken.tokenType;
 
     if (type == SEMICOLON || type == RIGHT_PAREN) {
@@ -67,26 +68,18 @@ Expression* Expression::binaryExpression(int prevTokenPrec) {
         Parse::nextToken();
         right = binaryExpression(opPrecValues.at(type));
 
-        leftType = left->type;
-        rightType = right->type;
-        if (!Types::compatible(leftType, rightType, false)) handleFatalError(cp"Type Err");
-        //may cause problem
-        if (leftType != EMPTY) {
-            left = castUnary(leftType, right->type, left, 0);
-        }
+        astOp = type;
+        lTemp = Types::modifyType(left, right->type, astOp);
+        rTemp = Types::modifyType(right, left->type, astOp);
 
-        if (rightType != EMPTY) {
-            right = castUnary(rightType, left->type, right, 0);
-        }
-
-        left = new Expression(left, nullptr, right, type, left->type, 0);
+        if (lTemp == nullptr && rTemp == nullptr) { handleFatalError(cp"BinaryExpr error"); }
+        if (lTemp != nullptr) { left = lTemp;}
+        if (rTemp != nullptr) { right = rTemp;}
+        cout << left << endl;
+        left = new Expression(left, nullptr, right, astOp, left->type, 0);
 
         type = currentToken.tokenType;
-
-        if (type == SEMICOLON || type == RIGHT_PAREN) {
-            return (left);
-        }
-
+        if (type == SEMICOLON || type == RIGHT_PAREN) { return left;}
     }
     return left;
 }

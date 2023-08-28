@@ -32,7 +32,7 @@ enum TokenType {
 
     PRINT,
     
-    HOLDER, WIDEN,
+    HOLDER, WIDEN, SCALE,
 
 
     END
@@ -63,7 +63,7 @@ const string TokenTypeArr[] = {
 
     "PRINT",
     
-    "HOLDER", "WIDEN",
+    "HOLDER", "WIDEN", "SCALE",
 
 
     "END"
@@ -136,6 +136,7 @@ class Expression {
     union {
         int intValue;
         int id;
+        int size;
     } value;
 
     Expression(Expression* left, Expression* mid, Expression* right, TokenType op, TokenType type, int intValue);
@@ -212,6 +213,9 @@ class Types {
     static TokenType pointer(TokenType t);
     static TokenType pointerValue(TokenType t);
     static TokenType determine();
+    static Expression* modifyType(Expression* tree, TokenType rType, TokenType op);
+    static bool isInt(TokenType type);
+    static bool isPtr(TokenType type);
 };
 
 class Asm {
@@ -268,4 +272,6 @@ class Asm {
 
     static int address(int id);
     static int deref(int id, TokenType type);
+
+    static int shiftLeft(int r, int pwr);
 };

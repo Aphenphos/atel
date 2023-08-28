@@ -141,6 +141,16 @@ int Parse::genAST(Expression* n, int r, TokenType parent) {
             return Asm::address(n->value.id);
         case DEREF: 
             return Asm::deref(leftRegister, n->left->type);
+        case SCALE:
+            switch(n->value.size) {
+                case 2: return Asm::shiftLeft(leftRegister, 1);
+                case 4: return Asm::shiftLeft(leftRegister, 2);
+                case 8: return Asm::shiftLeft(leftRegister, 3);
+                default:
+                    rightRegister = Asm::loadInt(n->value.size);
+                    return Asm::multiply(leftRegister, rightRegister);
+
+            }
         default:
             fprintf(stderr, "Parsing error while interpreting %d\0\n", n->op);
             exit(1);
