@@ -1,0 +1,1 @@
+Should begin to implement some of my own features such as specific int sizes string sizes etc
