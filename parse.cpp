@@ -18,6 +18,7 @@ map<TokenType, int> Expression::opPrecValues =
     {INTLIT, 0}, 
     {PLUS, 10}, 
     {MINUS, 10}, 
+    {EQ, 10},
     {STAR, 20}, 
     {SLASH, 20},
     {EQ_EQ, 30},

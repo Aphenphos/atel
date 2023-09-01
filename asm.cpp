@@ -24,6 +24,7 @@ void Asm::init(char* filename) {
 }
 
 void Asm::freeAllRegisters(void) {
+    printf("Freeing All Registers\n");
     freeRegisters[0] = freeRegisters[1] = freeRegisters[2] = freeRegisters[3] = 1;
     return;
 }
@@ -32,6 +33,7 @@ int Asm::allocateRegister(void) {
     for (int i = 0; i < 4; i++) {
         if (freeRegisters[i]) {
             freeRegisters[i] = 0;
+            printf("Allocating register:%i\n", i);
             return i;
         }
     }
@@ -40,6 +42,7 @@ int Asm::allocateRegister(void) {
 }
 
 void Asm::freeRegister(int r) {
+    printf("Freeing register %i", r);
     if (freeRegisters[r] != 0) {
         fprintf(stderr, "Register already free %d\n", r);
         exit(1);
@@ -51,8 +54,8 @@ void Asm::freeRegister(int r) {
 void Asm::preamble(void) {
     freeAllRegisters();
 
-
-   fputs("\tglobal\tmain\n"
+    printf("Preamble\n");
+    fputs("\tglobal\tmain\n"
 	"\textern\tprintf\n"
 	"\tsection\t.text\n"
 	"LC0:\tdb\t\"%d\",10,0\n"
@@ -70,6 +73,7 @@ void Asm::preamble(void) {
 }
 
 void Asm::postamble(void) {
+    printf("Postamble\n");
     fputs("\tmov	eax, 0\n" "\tpop	rbp\n" "\tret\n", outfile);
     fclose(outfile);
 }
@@ -120,7 +124,7 @@ int Asm::divide(int r1, int r2) {
 }
 
 void Asm::printInt(int r) {
-    printf("INT: Printing reg:%i\n",r);
+    printf("Printing int reg:%i\n",r);
     
     fprintf(outfile, "\tmov\trdi, %s\n", registerList[r]);
     fprintf(outfile, "\tcall\tprintint\n");
@@ -128,7 +132,7 @@ void Asm::printInt(int r) {
 }
 
 int Asm::loadGlobalSymbol(int id) {
-    printf("loading global symbol\n");
+    printf("Loading global symbol: %s\n", Symbols::symbolTable[id].name);
     int r = allocateRegister();
 
     switch(Symbols::symbolTable[id].type) {
@@ -153,7 +157,7 @@ int Asm::loadGlobalSymbol(int id) {
 }
 
 int Asm::storeGlobalSymbol(int r, int id) {
-    printf("Storing global symbol\n");
+    printf("Storing global symbol: %s in reg %i\n", Symbols::symbolTable[id].name, r);
     switch (Symbols::symbolTable[id].type) {
         case CHAR:
             fprintf(outfile, "\tmov\t[%s], %s\n", Symbols::symbolTable[id].name, bRegisterList[r]);
@@ -175,6 +179,7 @@ int Asm::storeGlobalSymbol(int r, int id) {
 }
 
 void Asm::globalSymbol(int id) {
+    printf("Creating global symbol: %s\n", Symbols::symbolTable[id].name);
     int size = Types::getSize(Symbols::symbolTable[id].type);
     fprintf(outfile, "\tcommon\t%s %d:%d\n", Symbols::symbolTable[id].name, size, size);
 }
@@ -218,12 +223,12 @@ const char* Asm::compareList[6] = { "sete", "setne", "setl", "setle", "setg", "s
 const char* Asm::jumpList[6] = { "je", "jne", "jl", "jle", "jg", "jge"};
 
 void Asm::jump(int l) {
-    printf("jumping\n");
+    printf("Jump %i\n", l);
     fprintf(outfile, "\tjmp\tL%d\n", l);
 }
 
 void Asm::label(int l) {
-    printf("Labeling\n");
+    printf("Label: %i\n", l);
     fprintf(outfile, "L%d:\n", l);
 }
 
@@ -297,7 +302,7 @@ int Asm::compareAndJump(TokenType instruction, int r1, int r2, int label) {
 }
 
 void Asm::funcPreamble(char* s) {
-    printf("func preamble\n");
+    printf("Func Preamble: %s\n", s);
       fprintf(outfile,
 	  "\tsection\t.text\n"
 	  "\tglobal\t%s\n"
@@ -306,7 +311,7 @@ void Asm::funcPreamble(char* s) {
 }
 
 void Asm::funcPostamble(int id) {
-    printf("funcPostamble\n");
+    printf("Func Postamble: %s\n", Symbols::symbolTable[id].name);
     label(Symbols::symbolTable[id].end);
     fputs("\tmov	eax, 0\n" "\tpop	rbp\n" "\tret\n", outfile);
 }
@@ -316,7 +321,7 @@ int Asm::widen(int r) {
 }
 
 void Asm::ret(int r, int id) {
-    printf("returning\n");
+    printf("Returning from: %s\n", Symbols::symbolTable[id].name);
     switch(Symbols::symbolTable[id].type) {
         case CHAR:
             fprintf(outfile, "\tmovzx\teax, %s\n", bRegisterList[r]);
@@ -336,7 +341,7 @@ void Asm::ret(int r, int id) {
 }
 
 int Asm::call(int r, int id) {
-    printf("calling func\n");
+    printf("Calling Func: %s\n", Symbols::symbolTable[id].name);
     int out = allocateRegister();
     fprintf(outfile, "\tmov\trdi, %s\n", registerList[r]);
     fprintf(outfile, "\tcall\t%s\n", Symbols::symbolTable[id].name);
@@ -353,7 +358,7 @@ int Asm::address(int id) {
 }
 
 int Asm::deref(int r, TokenType type) {
-    printf("Dereferencing\n");
+    printf("Dereferencing reg%i\n", r);
     switch (type) {
         case CHARPTR:
             fprintf(outfile, "\tmovzx\t%s, byte [%s]\n", registerList[r], registerList[r]);
@@ -370,7 +375,7 @@ int Asm::deref(int r, TokenType type) {
 }
 
 int Asm::shiftLeft(int r, int pwr) {
-    printf("shifting left\n");
+    printf("Shifting reg: %i left power %i\n", r, pwr);
     fprintf(outfile, "\tsal\t%s, %d\n", registerList[r], pwr);
     return r;
 }

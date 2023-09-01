@@ -57,7 +57,6 @@ Expression* Expression::binaryExpression(int prevTokenPrec) {
     TokenType type, leftType, rightType, astOp;
 
     left = prefix();
-    cout << left << endl;
     type = currentToken.tokenType;
 
     if (type == SEMICOLON || type == RIGHT_PAREN) {
@@ -75,7 +74,6 @@ Expression* Expression::binaryExpression(int prevTokenPrec) {
         if (lTemp == nullptr && rTemp == nullptr) { handleFatalError(cp"BinaryExpr error"); }
         if (lTemp != nullptr) { left = lTemp;}
         if (rTemp != nullptr) { right = rTemp;}
-        cout << left << endl;
         left = new Expression(left, nullptr, right, astOp, left->type, 0);
 
         type = currentToken.tokenType;
