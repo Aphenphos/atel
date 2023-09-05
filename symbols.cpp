@@ -10,6 +10,7 @@
 int Symbols::globalSymbolsCount;
 Symbols::Symbol Symbols::symbolTable[1024];
 
+
 int Symbols::findGlobalSymbol(char* s) {
     int i;
     for (i = 0; i < globalSymbolsCount; i++) {

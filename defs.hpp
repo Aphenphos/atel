@@ -28,9 +28,6 @@ enum TokenType {
     AND, ELSE, TRUE, FALSE,
     FOR, IF, OR, WHILE, RETURN,
     VAR, CONST,
-
-
-    PRINT,
     
     HOLDER, WIDEN, SCALE,
 
@@ -61,7 +58,6 @@ const string TokenTypeArr[] = {
     "VAR","CONST",
 
 
-    "PRINT",
     
     "HOLDER", "WIDEN", "SCALE",
 
@@ -133,7 +129,7 @@ class Expression {
     Expression* middle;
     Expression* right;
     TokenType op, type;
-    int l;
+    int r;
     union {
         int intValue;
         int id;
@@ -148,6 +144,7 @@ class Expression {
     static Expression* castUnary(TokenType op, TokenType type, Expression* left, int intValue);
     static Expression* prefix(void);
     static int getOpPrec(TokenType type);
+    static int rightAssoc(TokenType type);
 };
 
 class Statement {
@@ -156,7 +153,6 @@ class Statement {
 
     static void statements(void);
     static void globalDeclarations(void);
-    static Expression* printStatement(void);
     static Expression* assignmentStatement(void);
     static void varDeclaration(TokenType type);
     static Expression* funcDeclaration(TokenType type);
@@ -249,6 +245,7 @@ class Asm {
     static void globalSymbol(int id);
     static int loadGlobalSymbol(int id);
     static int storeGlobalSymbol(int r, int id);
+    static int storeDeref(int r1, int r2, TokenType type);
 
     static int eq(int r1, int r2);
     static int bangEq(int r1, int r2);

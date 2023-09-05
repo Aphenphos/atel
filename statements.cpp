@@ -25,59 +25,10 @@ void Statement::varDeclaration(TokenType type) {
         }
         handleFatalError(cp"Missing , or ;");
     }
-}
-
-Expression* Statement::assignmentStatement(void) {
-    Expression* left, *right, *tree;
-    int id;
-
-    checkCurToken(IDENT);
-
-    if (currentToken.tokenType == LEFT_PAREN) {
-        return callFunction();
-    }
-
-    if ((id = Symbols::findGlobalSymbol(Parse::prev().literal.string)) == -1) {
-        printf("Symbol not found : ");
-        handleSyntaxError();
-    }
-
-    right = Expression::castLeaf(LVIDENT, Symbols::symbolTable[id].type, id);
-
-    checkCurToken(EQ);
-
-    left = Expression::binaryExpression(0);
-
-    left = Types::modifyType(left, right->type, EMPTY);
-
-    if (left == nullptr) handleFatalError(cp"Type Error");
-
-    tree = new Expression(left, nullptr, right, EQ, INT, 0);
-
-    return tree;
-}
-
-Expression* Statement::printStatement(void) {
-    Expression* tree;
-
-    checkCurToken(PRINT);
-
-    tree = Expression::binaryExpression(0);
-
-    tree = Types::modifyType(tree, INT, EMPTY);
-    if (tree == nullptr) {
-        handleFatalError(cp"Cant print");
-    }
-
-
-    tree = Expression::castUnary(PRINT, EMPTY, tree, 0);
-    return tree;
-}
+} 
 
 Expression* Statement::singleStatement(void) {
     switch(currentToken.tokenType) {
-        case PRINT:
-            return printStatement();
         case CHAR:
         case INT:
         case LONG:
@@ -87,8 +38,6 @@ Expression* Statement::singleStatement(void) {
             Parse::nextToken();
             varDeclaration(type);
             return nullptr;
-        case IDENT:
-            return assignmentStatement();
         case WHILE:
             return whileStatement();
         case IF:
@@ -98,8 +47,7 @@ Expression* Statement::singleStatement(void) {
         case RETURN:
             return returnStatement();
         default:
-            handleSyntaxError();
-            exit(1);
+            return Expression::binaryExpression(0);
     }
 }
 
@@ -112,7 +60,7 @@ Expression* Statement::compoundStatement(void) {
     while (1) {
         tree = singleStatement();
 
-         if (tree != nullptr && (tree->op == PRINT || tree->op == EQ)) {
+         if (tree != nullptr && (tree->op == RETURN || tree->op == EQ || tree->op == FUNCCALL)) {
             checkCurToken(SEMICOLON);   
          }
 
@@ -311,7 +259,7 @@ void Statement::globalDeclarations(void) {
 
         if (currentToken.tokenType == LEFT_PAREN) {
             tree = funcDeclaration(type);
-            Parse::genAST(tree, nr, TokenType(0));
+            Parse::genAST(tree, nl, TokenType(0));
         } else {
             varDeclaration(type);
         }

@@ -43,8 +43,9 @@ int Asm::allocateRegister(void) {
 
 void Asm::freeRegister(int r) {
     printf("Freeing register %i\n", r);
+    if (r < 0) handleFatalError(cp"Register does not exist");
     if (freeRegisters[r] != 0) {
-        fprintf(stderr, "Register already free %d\n", r);
+        fprintf(stderr, "Register already free %i\n", r);
         exit(1);
     }
 
@@ -106,14 +107,6 @@ int Asm::divide(int r1, int r2) {
     freeRegister(r2);
 
     return r1;
-}
-
-void Asm::printInt(int r) {
-    printf("Printing int reg:%i\n",r);
-    
-    fprintf(outfile, "\tmov\trdi, %s\n", registerList[r]);
-    fprintf(outfile, "\tcall\tprintint\n");
-    freeRegister(r);
 }
 
 int Asm::loadGlobalSymbol(int id) {
@@ -363,4 +356,20 @@ int Asm::shiftLeft(int r, int pwr) {
     printf("Shifting reg: %i left power %i\n", r, pwr);
     fprintf(outfile, "\tsal\t%s, %d\n", registerList[r], pwr);
     return r;
+}
+
+int Asm::storeDeref(int r1, int r2, TokenType type) {
+    switch (type) {
+        case CHAR:
+            fprintf(outfile, "\tmov\t[%s], byte %s\n", registerList[r2], registerList[r1]);
+            break;
+        case LONG:
+        case INT:
+            fprintf(outfile, "\tmov\t[%s], %s\n", registerList[r2], registerList[r1]);
+            break;
+        default:
+            handleFatalError(cp("Cant store deref type:%i", type));
+    }
+
+    return r1;
 }

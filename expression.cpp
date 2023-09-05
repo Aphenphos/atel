@@ -63,23 +63,40 @@ Expression* Expression::binaryExpression(int prevTokenPrec) {
         return(left);
     }
 
-    while(getOpPrec(type) > prevTokenPrec) {
+    while(getOpPrec(type) > prevTokenPrec || (Expression::rightAssoc(type) == prevTokenPrec && getOpPrec(type) == prevTokenPrec)) {
         Parse::nextToken();
         right = binaryExpression(opPrecValues.at(type));
 
         astOp = type;
-        lTemp = Types::modifyType(left, right->type, astOp);
-        rTemp = Types::modifyType(right, left->type, astOp);
 
-        if (lTemp == nullptr && rTemp == nullptr) { handleFatalError(cp"BinaryExpr error"); }
-        if (lTemp != nullptr) { left = lTemp;}
-        if (rTemp != nullptr) { right = rTemp;}
+        if (astOp == EQ) {
+            right->r = 1;
+            right = Types::modifyType(right, left->type, EMPTY);
+            if (left == nullptr) {
+                printf("incompatable expression in assignment");
+                exit(1);
+            }
+
+            lTemp = left; left = right; right = lTemp;
+        } else {
+            left->r = 1;
+            right->r = 1;
+            
+            lTemp = Types::modifyType(left, right->type, astOp);
+            rTemp = Types::modifyType(right, left->type, astOp);
+
+            if (lTemp == nullptr && rTemp == nullptr) { handleFatalError(cp"BinaryExpr error"); }
+            if (lTemp != nullptr) { left = lTemp;}
+            if (rTemp != nullptr) { right = rTemp;}
+        }
+
         left = new Expression(left, nullptr, right, astOp, left->type, 0);
 
         type = currentToken.tokenType;
-        if (type == SEMICOLON || type == RIGHT_PAREN) { return left;}
+        if (type == SEMICOLON || type == RIGHT_PAREN) { left->r=1; return left;}
     }
-    return left;
+
+    left->r=1 ;return left;
 }
 
 
@@ -128,4 +145,11 @@ Expression* Expression::prefix(void) {
             tree = castPrimary();
     }
     return tree;
+}
+
+int Expression::rightAssoc(TokenType type) {
+    if (type == EQ) {
+        return 1;
+    }
+    return 0;
 }

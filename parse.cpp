@@ -64,16 +64,16 @@ int Parse::whileAST(Expression* n) {
     genAST(n->left, lend, n->op);
     Asm::freeAllRegisters();
 
-    genAST(n->right, nr, n->op);
+    genAST(n->right, nl, n->op);
     Asm::freeAllRegisters();
 
     Asm::jump(lstart);
     Asm::label(lend);
     
-    return -1;
+    return nr;
 }
 
-int Parse::genAST(Expression* n, int r, TokenType parent) {
+int Parse::genAST(Expression* n, int label, TokenType parent) {
     int leftRegister, rightRegister;
     switch(n->op) {
         case IF:
@@ -82,21 +82,21 @@ int Parse::genAST(Expression* n, int r, TokenType parent) {
             return whileAST(n);
         case FUNCTION:
             Asm::funcPreamble(Symbols::symbolTable[n->value.id].name);
-            genAST(n->left, nr, n->op);
+            genAST(n->left, nl, n->op);
             Asm::funcPostamble(n->value.id);
             return nr;
         case HOLDER:
-            genAST(n->left , nr, n->op );
+            genAST(n->left , nl, n->op );
             Asm::freeAllRegisters();
-            genAST(n->right, -1, n->op);
+            genAST(n->right, nl, n->op);
             Asm::freeAllRegisters();
             return nr;
     }
     if (n->left) {
-        leftRegister = Parse::genAST(n->left, -1, n->op);
+        leftRegister = Parse::genAST(n->left, nl, n->op);
     }
     if (n->right) {
-        rightRegister = Parse::genAST(n->right, leftRegister, n->op);
+        rightRegister = Parse::genAST(n->right, nl, n->op);
     }
     
     switch(n->op) {
@@ -111,9 +111,17 @@ int Parse::genAST(Expression* n, int r, TokenType parent) {
         case INTLIT:
             return Asm::loadInt(n->value.intValue);
         case IDENT:
-            return Asm::loadGlobalSymbol(n->value.id);
-        case LVIDENT:
-            return Asm::storeGlobalSymbol(r, n->value.id);
+            if (n->r || parent == DEREF) {
+                return Asm::loadGlobalSymbol(n->value.id);
+                } else {
+                    return nr;
+                } 
+        case EQ:
+            switch (n->right->op) {
+                case IDENT: return (Asm::storeGlobalSymbol(leftRegister, n->right->value.id));
+                case DEREF: return (Asm::storeDeref(leftRegister, rightRegister, n->right->type));
+                default: handleFatalError(cp("Cant assign in ast: %i", n->op));
+            };
         case EQ_EQ:
         case BANG_EQ:
         case LESS:   
@@ -121,27 +129,26 @@ int Parse::genAST(Expression* n, int r, TokenType parent) {
         case GREAT:
         case GREAT_EQ:
             if (parent == IF || parent == WHILE) {
-                return Asm::compareAndJump(n->op, leftRegister, rightRegister, r);
+                return Asm::compareAndJump(n->op, leftRegister, rightRegister, label);
             } else {
                 return Asm::compareAndSet(n->op, leftRegister, rightRegister);
             }
-        case EQ:
-            return(rightRegister);
-        case PRINT:
-            Asm::printInt(leftRegister);
-            Asm::freeAllRegisters();
-            return nr;
         case WIDEN:
             return Asm::widen(leftRegister);
         case RETURN:
             Asm::ret(leftRegister, Statement::currentFuncID);
             return nr;
         case FUNCCALL:
+        cout << leftRegister << endl;
             return Asm::call(leftRegister, n->value.id); 
         case ADDRESS:
             return Asm::address(n->value.id);
         case DEREF: 
-            return Asm::deref(leftRegister, n->left->type);
+            if (n->r) {
+                return (Asm::deref(leftRegister, n->left->type));
+            } else {
+                return leftRegister;
+            }
         case SCALE:
             switch(n->value.size) {
                 case 2: return Asm::shiftLeft(leftRegister, 1);
@@ -156,6 +163,7 @@ int Parse::genAST(Expression* n, int r, TokenType parent) {
             fprintf(stderr, "Parsing error while interpreting %d\0\n", n->op);
             exit(1);
     }
+    return nr;
 
 }
 
@@ -171,7 +179,7 @@ int Parse::ifAST(Expression* n) {
     genAST(n->left, lfalse, n->op);
     Asm::freeAllRegisters();
 
-    genAST(n->middle, -1, n->op);
+    genAST(n->middle, nl, n->op);
     Asm::freeAllRegisters();
 
     if (n->right) {
@@ -181,11 +189,10 @@ int Parse::ifAST(Expression* n) {
     Asm::label(lfalse);
 
     if (n->right) {
-        genAST(n->right, nr, n->op);
+        genAST(n->right, nl, n->op);
         Asm::freeAllRegisters();
         Asm::label(lend);
     }
 
-    return -1;
-
+    return nr;
 }

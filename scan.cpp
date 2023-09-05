@@ -25,7 +25,6 @@ const map<string, TokenType> Scan::reservedWords =
     {"return", RETURN},
     {"const", CONST},
     {"class", CLASS},
-    {"print", PRINT},
     {"for", FOR},
     {"void", VOID},
     {"char", CHAR},

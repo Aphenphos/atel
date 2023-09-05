@@ -1,1 +1,5 @@
 Should begin to implement some of my own features such as specific int sizes string sizes etc
+
+9/5/23 Compiler works... only in gdb. Something about the leftRegister arguement
+when passed works in genAST i get the proper result of 0, however when running on its own
+i get -1 which is not a valid result and I am unsure where it pulls that number from.

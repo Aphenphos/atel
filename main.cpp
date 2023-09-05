@@ -47,6 +47,7 @@ void run() {
 
     Asm::init((char *)"test.asm");
     Asm::preamble();
+    Symbols::addGsymbol(cp"printint", CHAR, FUNCTION, 0);
     Statement::globalDeclarations();
     Asm::postamble();
     return;

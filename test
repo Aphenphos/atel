@@ -4,7 +4,7 @@ int  *e;
 int   f;
 
 int main() {
-  c= 12; d=18; print c;
-  e= &c + 1; f= *e; print f;
-  return(0)
+  c= 12; d=18; printint(c);
+  e= &c + 1; f= *e; printint(f);
+  return(0);
 }
