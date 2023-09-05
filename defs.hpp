@@ -133,6 +133,7 @@ class Expression {
     Expression* middle;
     Expression* right;
     TokenType op, type;
+    int l;
     union {
         int intValue;
         int id;

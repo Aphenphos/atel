@@ -42,7 +42,7 @@ int Asm::allocateRegister(void) {
 }
 
 void Asm::freeRegister(int r) {
-    printf("Freeing register %i", r);
+    printf("Freeing register %i\n", r);
     if (freeRegisters[r] != 0) {
         fprintf(stderr, "Register already free %d\n", r);
         exit(1);
@@ -55,26 +55,11 @@ void Asm::preamble(void) {
     freeAllRegisters();
 
     printf("Preamble\n");
-    fputs("\tglobal\tmain\n"
-	"\textern\tprintf\n"
-	"\tsection\t.text\n"
-	"LC0:\tdb\t\"%d\",10,0\n"
-	"printint:\n"
-	"\tpush\trbp\n"
-	"\tmov\trbp, rsp\n"
-	"\tsub\trsp, 16\n"
-	"\tmov\t[rbp-4], edi\n"
-	"\tmov\teax, [rbp-4]\n"
-	"\tmov\tesi, eax\n"
-	"\tlea	rdi, [rel LC0]\n"
-	"\tmov	eax, 0\n"
-	"\tcall	printf\n" "\tnop\n" "\tleave\n" "\tret\n" "\n", outfile);
-
+    fputs("\textern\tprintint\n", outfile);
 }
 
 void Asm::postamble(void) {
     printf("Postamble\n");
-    fputs("\tmov	eax, 0\n" "\tpop	rbp\n" "\tret\n", outfile);
     fclose(outfile);
 }
 

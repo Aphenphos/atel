@@ -16,17 +16,17 @@ map<TokenType, int> Expression::opPrecValues =
 {   
     {END , 0}, 
     {INTLIT, 0}, 
-    {PLUS, 10}, 
-    {MINUS, 10}, 
     {EQ, 10},
-    {STAR, 20}, 
-    {SLASH, 20},
-    {EQ_EQ, 30},
-    {BANG_EQ, 30},
-    {LESS, 40},
-    {LESS_EQ, 40},
-    {GREAT, 40},
-    {GREAT_EQ, 40}
+    {PLUS, 20}, 
+    {MINUS, 20}, 
+    {STAR, 30}, 
+    {SLASH, 30},
+    {EQ_EQ, 40},
+    {BANG_EQ, 40},
+    {LESS, 50},
+    {LESS_EQ, 50},
+    {GREAT, 50},
+    {GREAT_EQ, 50}
 };
 
 Token Parse::prev(void) {
