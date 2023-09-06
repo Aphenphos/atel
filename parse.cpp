@@ -139,7 +139,6 @@ int Parse::genAST(Expression* n, int label, TokenType parent) {
             Asm::ret(leftRegister, Statement::currentFuncID);
             return nr;
         case FUNCCALL:
-        cout << leftRegister << endl;
             return Asm::call(leftRegister, n->value.id); 
         case ADDRESS:
             return Asm::address(n->value.id);

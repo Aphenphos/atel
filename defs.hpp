@@ -20,8 +20,7 @@ enum TokenType {
     INT, LONG, VOID, CHAR, STRING,
     INTPTR, LONGPTR, CHARPTR, VOIDPTR, STRINGPTR,
     ADDRESS, DEREF,
-    
-    LVIDENT, IDENT, INTLIT,
+    IDENT, INTLIT,
 
     CLASS, FUNCTION, FUNCCALL,
 
@@ -48,8 +47,8 @@ const string TokenTypeArr[] = {
     "INT", "LONG", "VOID", "CHAR", "STRING",
     "INTPTR", "LONGPTR", "CHARPTR", "VOIDPTR", "STRINGPTR",
     "ADDRESS", "DEREF"
-
-    "LVIDENT", "IDENT",  "INTLIT",
+    
+     "IDENT",  "INTLIT",
 
     "CLASS", "FUNCTION", "FUNCCALL",
 

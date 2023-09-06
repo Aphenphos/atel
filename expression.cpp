@@ -60,7 +60,7 @@ Expression* Expression::binaryExpression(int prevTokenPrec) {
     type = currentToken.tokenType;
 
     if (type == SEMICOLON || type == RIGHT_PAREN) {
-        return(left);
+        left->r=1; return left;
     }
 
     while(getOpPrec(type) > prevTokenPrec || (Expression::rightAssoc(type) == prevTokenPrec && getOpPrec(type) == prevTokenPrec)) {
