@@ -158,8 +158,19 @@ int Asm::storeGlobalSymbol(int r, int id) {
 
 void Asm::globalSymbol(int id) {
     printf("Creating global symbol: %s\n", Symbols::symbolTable[id].name);
-    int size = Types::getSize(Symbols::symbolTable[id].type);
-    fprintf(outfile, "\tcommon\t%s %d:%d\n", Symbols::symbolTable[id].name, size, size);
+    int typeSize = Types::getSize(Symbols::symbolTable[id].type);
+
+    fprintf(outfile, "\tsection\t.data\n" "\tglobal\t%s\n", Symbols::symbolTable[id].name);
+    fprintf(outfile, "%s:", Symbols::symbolTable[id].name);
+
+    for (int i=0; i < Symbols::symbolTable[id].size; i++) {
+        switch (typeSize) {
+            case 1: fprintf(outfile, "\tdb\t0\n"); break;
+            case 4: fprintf(outfile, "\tdd\t0\n"); break;
+            case 8: fprintf(outfile, "\tdq\t0\n"); break;
+            default: handleFatalError(cp"unknown type size");
+        }
+    }
 }
 
 int Asm::compare(int r1, int r2, char* instruction) {
@@ -306,7 +317,7 @@ void Asm::ret(int r, int id) {
             break;
         case INT:
             printf("%s", dRegisterList[r]);
-            fprintf(outfile, "\tmovzx\teax, %s\n", dRegisterList[r]);
+            fprintf(outfile, "\tmov\teax, %s\n", dRegisterList[r]);
             break;
         case LONG:
             fprintf(outfile, "\tmov\trax. %s\n", registerList[r]);

@@ -22,7 +22,7 @@ enum TokenType {
     ADDRESS, DEREF,
     IDENT, INTLIT,
 
-    CLASS, FUNCTION, FUNCCALL,
+    CLASS, FUNCTION, FUNCCALL, ARRAY,
 
     AND, ELSE, TRUE, FALSE,
     FOR, IF, OR, WHILE, RETURN,
@@ -50,7 +50,7 @@ const string TokenTypeArr[] = {
     
      "IDENT",  "INTLIT",
 
-    "CLASS", "FUNCTION", "FUNCCALL",
+    "CLASS", "FUNCTION", "FUNCCALL", "ARRAY",
 
     "AND", "ELSE", "TRUE", "FALSE",
     "FOR", "IF", "OR","WHILE", "RETURN",
@@ -162,6 +162,7 @@ class Statement {
     static Expression* forStatement(void);
     static Expression* callFunction(void);
     static Expression* returnStatement(void);
+    static Expression* accessArray(void);
 };
 
 class Parse {
@@ -190,12 +191,13 @@ class Symbols {
         TokenType type;
         TokenType sType;
         int end;
+        int size;
     };
     static int globalSymbolsCount;
     static Symbol symbolTable[1024];
     static int findGlobalSymbol(char* s);
     static int newGlobalSymbol(void);
-    static int addGsymbol(char* s, TokenType type, TokenType sType, int end);
+    static int addGsymbol(char* s, TokenType type, TokenType sType, int end, int size);
 
 
     

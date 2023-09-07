@@ -38,12 +38,22 @@ Expression* Expression::castPrimary(void) {
                 Parse::nextToken();
                 return Statement::callFunction();
             }
+
+            if (Parse::peek().tokenType == LEFT_BRACE) {
+                Parse::nextToken();
+                return Statement::accessArray();
+            }
             id = Symbols::findGlobalSymbol(currentToken.literal.string);
-            if (id == -1) {
+            if (id == -1 || Symbols::symbolTable[id].sType != VAR) {
                 handleUnknownVar();
             }
             node = castLeaf(IDENT, Symbols::symbolTable[id].type, id);
             break;
+        case LEFT_PAREN:
+            Parse::nextToken();
+            node = binaryExpression(0);
+            checkCurToken(RIGHT_PAREN);
+            return node;
         default:
             fprintf(stderr, "Parsing error %d", currentToken.tokenType);
             exit(1);
@@ -59,7 +69,7 @@ Expression* Expression::binaryExpression(int prevTokenPrec) {
     left = prefix();
     type = currentToken.tokenType;
 
-    if (type == SEMICOLON || type == RIGHT_PAREN) {
+    if (type == SEMICOLON || type == RIGHT_PAREN || type == RIGHT_BRACE) {
         left->r=1; return left;
     }
 
@@ -93,7 +103,7 @@ Expression* Expression::binaryExpression(int prevTokenPrec) {
         left = new Expression(left, nullptr, right, astOp, left->type, 0);
 
         type = currentToken.tokenType;
-        if (type == SEMICOLON || type == RIGHT_PAREN) { left->r=1; return left;}
+        if (type == SEMICOLON || type == RIGHT_PAREN || type == RIGHT_BRACE) { left->r=1; return left;}
     }
 
     left->r=1 ;return left;

@@ -10,21 +10,21 @@ int Statement::currentFuncID;
 
 void Statement::varDeclaration(TokenType type) {
     int id;
-    while (1) {
-        id = Symbols::addGsymbol(Parse::prev().literal.string, type, VAR, 0);
-        Asm::globalSymbol(id);
-        if (currentToken.tokenType == SEMICOLON) {
-            Parse::nextToken();
-            return;
-        }
 
-        if (currentToken.tokenType == COMMA) {
-            Parse::nextToken();
-            checkCurToken(IDENT);
-            continue;
+    if (currentToken.tokenType == LEFT_BRACE) {
+
+        if (Parse::peek().tokenType == INTLIT) {
+            id = Symbols::addGsymbol(Parse::prev().literal.string, Types::pointer(type), ARRAY, 0, Parse::peek().literal.intLiteral);
+            Asm::globalSymbol(id);
         }
-        handleFatalError(cp"Missing , or ;");
+        Parse::nextToken();
+        Parse::nextToken();
+        checkCurToken(RIGHT_BRACE);
+    } else {
+        id = Symbols::addGsymbol(Parse::prev().literal.string, type, VAR, 0, 1);
+        Asm::globalSymbol(id);
     }
+    checkCurToken(SEMICOLON);
 } 
 
 Expression* Statement::singleStatement(void) {
@@ -185,7 +185,7 @@ Expression* Statement::funcDeclaration(TokenType t) {
     Expression* tree, *finalStatement;
     int nameSlot, endLabel;
     endLabel = Parse::label();
-    nameSlot = Symbols::addGsymbol(Parse::prev().literal.string, t, FUNCTION, endLabel);
+    nameSlot = Symbols::addGsymbol(Parse::prev().literal.string, t, FUNCTION, endLabel, 0);
 
     currentFuncID = nameSlot;
 
@@ -268,4 +268,31 @@ void Statement::globalDeclarations(void) {
             break;
         }
     }
+}
+
+Expression* Statement::accessArray(void) {
+    Expression* left, *right;
+    int id;
+
+    if ((id = Symbols::findGlobalSymbol(Parse::prev().literal.string)) == -1 || Symbols::symbolTable[id].sType != ARRAY) {
+        handleFatalError(cp"Undeclared Arr");
+    }
+
+    left = Expression::castLeaf(ADDRESS, Symbols::symbolTable[id].type, id);
+
+    Parse::nextToken();
+
+    right = Expression::binaryExpression(0);
+
+    checkCurToken(RIGHT_BRACE);
+
+    if (!Types::isInt(right->type)) {
+        handleFatalError(cp"Array index not int");
+    }
+
+    right = Types::modifyType(right, left->type, PLUS);
+
+    left = new Expression(left, nullptr, right, PLUS, Symbols::symbolTable[id].type, 0);
+    left = Expression::castUnary(DEREF, Types::pointerValue(left->type), left, 0);
+    return left;
 }

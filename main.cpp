@@ -44,10 +44,10 @@ void run() {
     vector<Token>* tokensPointer = &Scan::tokens;
     
     Parse::initParser(tokensPointer);
-
     Asm::init((char *)"test.asm");
     Asm::preamble();
-    Symbols::addGsymbol(cp"printint", CHAR, FUNCTION, 0);
+
+    Symbols::addGsymbol(cp"printint", CHAR, FUNCTION, 0, 0);
     Statement::globalDeclarations();
     Asm::postamble();
     return;
