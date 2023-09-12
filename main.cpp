@@ -39,7 +39,7 @@ void run() {
     Scan::currentLine = 1;
     Scan::nextChar();
     vector<Token> tokenList = Scan::scanToken();
-    // Scan::printTokens();
+    Scan::printTokens();
 
     vector<Token>* tokensPointer = &Scan::tokens;
     
@@ -48,6 +48,7 @@ void run() {
     Asm::preamble();
 
     Symbols::addGsymbol(cp"printint", CHAR, FUNCTION, 0, 0);
+    Symbols::addGsymbol(cp"printchar", CHAR, FUNCTION, 0, 0);
     Statement::globalDeclarations();
     Asm::postamble();
     return;

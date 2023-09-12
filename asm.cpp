@@ -57,6 +57,7 @@ void Asm::preamble(void) {
 
     printf("Preamble\n");
     fputs("\textern\tprintint\n", outfile);
+    fputs("\textern\tprintchar\n", outfile);
 }
 
 void Asm::postamble(void) {
@@ -383,4 +384,19 @@ int Asm::storeDeref(int r1, int r2, TokenType type) {
     }
 
     return r1;
+}
+
+void Asm::globalString(int l, char* string) {
+    char* ptr;
+    label(l);
+    for (ptr=string; *ptr; ptr++) {
+        fprintf(outfile, "\tdb\t%d\n", *ptr);
+    }
+    fprintf(outfile, "\tdb\t0\n");
+}
+
+int Asm::loadGlobalString(int id) {
+    int r = allocateRegister();
+    fprintf(outfile, "\tmov\t%s, L%d\n", registerList[r], id);
+    return r;
 }

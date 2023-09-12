@@ -12,22 +12,6 @@ vector<Token> Parse::tokens;
 int Parse::current;
 int Parse::labelCount = 1;
 
-map<TokenType, int> Expression::opPrecValues = 
-{   
-    {END , 0}, 
-    {INTLIT, 0}, 
-    {EQ, 10},
-    {PLUS, 20}, 
-    {MINUS, 20}, 
-    {STAR, 30}, 
-    {SLASH, 30},
-    {EQ_EQ, 40},
-    {BANG_EQ, 40},
-    {LESS, 50},
-    {LESS_EQ, 50},
-    {GREAT, 50},
-    {GREAT_EQ, 50}
-};
 
 Token Parse::prev(void) {
     return tokens[current - 1];
@@ -110,6 +94,8 @@ int Parse::genAST(Expression* n, int label, TokenType parent) {
             return Asm::divide(leftRegister, rightRegister);
         case INTLIT:
             return Asm::loadInt(n->value.intValue);
+        case STRING:
+            return Asm::loadGlobalString(n->value.id);
         case IDENT:
             if (n->r || parent == DEREF) {
                 return Asm::loadGlobalSymbol(n->value.id);

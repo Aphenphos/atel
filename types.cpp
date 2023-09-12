@@ -124,6 +124,8 @@ Expression* Types::modifyType(Expression* tree, TokenType rType, TokenType op) {
             rSize = getSize(rType);
             if (rSize > 1) {
                 return Expression::castUnary(SCALE, rType, tree, rSize);
+            } else {
+                return tree;
             }
         }
     }

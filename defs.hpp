@@ -46,8 +46,7 @@ const string TokenTypeArr[] = {
 
     "INT", "LONG", "VOID", "CHAR", "STRING",
     "INTPTR", "LONGPTR", "CHARPTR", "VOIDPTR", "STRINGPTR",
-    "ADDRESS", "DEREF"
-    
+    "ADDRESS", "DEREF",
      "IDENT",  "INTLIT",
 
     "CLASS", "FUNCTION", "FUNCCALL", "ARRAY",
@@ -98,6 +97,7 @@ class Scan {
     static bool skipChar(void);
     static bool match(char c);
     static void handleString(void);
+    static void handleChar(void);
     static void handleIntlit(void);
     static void handleIdentifier(void);
 
@@ -243,6 +243,8 @@ class Asm {
     static int multiply(int r1, int r2);
     static int divide(int r1, int r2);
 
+    static void globalString(int l, char* string);
+    static int loadGlobalString(int id);
     static void globalSymbol(int id);
     static int loadGlobalSymbol(int id);
     static int storeGlobalSymbol(int r, int id);

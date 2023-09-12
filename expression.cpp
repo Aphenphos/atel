@@ -14,6 +14,22 @@ Expression::Expression(Expression* pleft, Expression* pmid,  Expression* pright,
     value.intValue = pintValue;
 }
 
+map<TokenType, int> Expression::opPrecValues = 
+{   
+    {END , 0}, 
+    {EQ, 10},
+    {PLUS, 20}, 
+    {MINUS, 20}, 
+    {STAR, 30}, 
+    {SLASH, 30},
+    {EQ_EQ, 40},
+    {BANG_EQ, 40},
+    {LESS, 50},
+    {LESS_EQ, 50},
+    {GREAT, 50},
+    {GREAT_EQ, 50}
+};
+
 Expression* Expression::castLeaf(TokenType op, TokenType type, int intValue) {
     return(new Expression(nullptr, nullptr, nullptr, op, type, intValue));
 }
@@ -26,12 +42,14 @@ Expression* Expression::castPrimary(void) {
     Expression* node;
     int id;
     switch(currentToken.tokenType) {
-        case INTLIT:
-            if ((currentToken.literal.intLiteral >= 0) && (currentToken.literal.intLiteral < 256))
+        case INTLIT: {
+            if ((currentToken.literal.intLiteral >= 0) && (currentToken.literal.intLiteral < 256)){
+                node = castLeaf(INTLIT, CHAR, currentToken.literal.intLiteral);
+            } else {
                 node = castLeaf(INTLIT, INT, currentToken.literal.intLiteral);
-            else 
-                node = castLeaf(INTLIT, INT, currentToken.literal.intLiteral);
+            } 
             break;
+        }
         case IDENT:
 
             if (Parse::peek().tokenType == LEFT_PAREN) {
@@ -54,6 +72,12 @@ Expression* Expression::castPrimary(void) {
             node = binaryExpression(0);
             checkCurToken(RIGHT_PAREN);
             return node;
+        case STRING:
+        //really a label
+            id = Symbols::newGlobalSymbol();
+            Asm::globalString(id, currentToken.literal.string);
+            node = Expression::castLeaf(STRING, CHARPTR, id);
+            break;
         default:
             fprintf(stderr, "Parsing error %d", currentToken.tokenType);
             exit(1);
@@ -68,11 +92,9 @@ Expression* Expression::binaryExpression(int prevTokenPrec) {
 
     left = prefix();
     type = currentToken.tokenType;
-
     if (type == SEMICOLON || type == RIGHT_PAREN || type == RIGHT_BRACE) {
         left->r=1; return left;
     }
-
     while(getOpPrec(type) > prevTokenPrec || (Expression::rightAssoc(type) == prevTokenPrec && getOpPrec(type) == prevTokenPrec)) {
         Parse::nextToken();
         right = binaryExpression(opPrecValues.at(type));

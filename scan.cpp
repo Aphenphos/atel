@@ -112,7 +112,8 @@ vector<Token> Scan::scanToken(void) {
                     addToken(match('=') ? GREAT_EQ : GREAT);
                 break;
                 }
-            case '"': handleString(); break;
+            case '"':{ handleString(); break; }
+            case '\'':{ handleChar(); break; }
             case EOF: {
                 addToken(END);
                 fclose(srcFile);
@@ -158,6 +159,31 @@ void Scan::handleString(void) {
     char* thisString = (char*)malloc(sizeof(i+1));
     strcpy(thisString, currentLiteral);
     addToken(STRING,0,thisString);
+    return;
+}
+
+void Scan::handleChar(void) {
+    nextChar();
+    char toAdd = currentChar;
+    if (currentChar == '\\') {
+        nextChar();
+        switch (currentChar) {
+            case 'a':{ toAdd = '\a'; break;}
+            case 'b':{ toAdd = '\b'; break; }
+            case 'f':{ toAdd = '\f'; break; }
+            case 'n':{ toAdd = '\n'; break; }
+            case 'r':{ toAdd = '\r'; break; }
+            case 't':{ toAdd = '\t'; break; }
+            case 'v':{ toAdd = '\v'; break; }
+            case '\\':{ toAdd = '\\'; break; }
+            case '"':{ toAdd = '\"'; break; }
+            case '\'':{ toAdd = '\''; break;}
+            default: handleFatalError(cp"Unrecognized Escape");
+        }
+    }
+    addToken(INTLIT, toAdd);
+    //skip the closing '
+    nextChar();
     return;
 }
 
